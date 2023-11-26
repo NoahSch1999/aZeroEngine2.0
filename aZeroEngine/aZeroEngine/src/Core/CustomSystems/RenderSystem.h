@@ -21,8 +21,8 @@ namespace aZero
 			}
 
 		public:
-			RenderSystem()
-				:System(Singleton::ECS->Get().GetComponentManager())
+			RenderSystem(ComponentManager& componentManager)
+				:System(componentManager)
 			{
 				// Signature Setup
 				m_componentMask.set(m_componentManager.GetComponentBit<Component::Transform>());
@@ -35,14 +35,14 @@ namespace aZero
 				
 			}
 
-			void Register(const Entity& entity)
+			virtual void OnRegister() override
 			{
-
+				printf("Entity registered for RenderSystem\n");
 			}
 
-			void UnRegister(const Entity& entity)
+			virtual void OnUnRegister() override
 			{
-
+				printf("Entity unregistered for RenderSystem\n");
 			}
 		};
 	}

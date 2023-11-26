@@ -48,49 +48,5 @@ namespace aZero
 		}
 
 		ECS::Entity& GetEntity(const std::string& name) { return m_entities.GetElementRef(name); }
-
-		template<typename T>
-		void AddComponent(ECS::Entity& entity)
-		{
-			Singleton::ECS->Get().GetComponentManager().AddComponent<T>(entity);
-		}
-
-		template<typename T>
-		void AddComponent(ECS::Entity& entity, T&& component)
-		{
-			if (Singleton::ECS->Get().GetComponentManager().HasComponent<T>(entity))
-			{
-				Singleton::ECS->Get().GetComponentManager().GetComponentRef<T>(entity) = component;
-			}
-			else
-			{
-				Singleton::ECS->Get().GetComponentManager().AddComponent<T>(entity, std::forward<T>(component));
-			}
-		}
-
-		template<typename T>
-		void HasComponent(ECS::Entity& entity) const
-		{
-			return Singleton::ECS->Get().GetComponentManager().HasComponent<T>(entity);
-		}
-
-		template<typename T>
-		void RemoveComponent(ECS::Entity& entity)
-		{
-			return Singleton::ECS->Get().GetComponentManager().RemoveComponent<T>(entity);
-		}
-
-		template<typename T>
-		const T& GetComponentConstRef(const ECS::Entity& entity) const
-		{
-			return Singleton::ECS->Get().GetComponentManager().GetComponentConstRef(entity);
-		}
-
-		template<typename T>
-		T& GetComponentRef(const ECS::Entity& entity)
-		{
-			return Singleton::ECS->Get().GetComponentManager().GetComponentRef(entity);
-		}
-
 	};
 }

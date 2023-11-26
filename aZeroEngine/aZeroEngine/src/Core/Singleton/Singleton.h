@@ -41,9 +41,5 @@ namespace aZero
 				}
 			}
 		};
-
-		static Singleton<ECS::ECSWrapper>* ECS;
-		static Singleton<D3D12::ResourceRecycler>* ResourceRecycler;
-		static Singleton<D3D12::DescriptorManager>* DescriptorManager;
 	}
 }

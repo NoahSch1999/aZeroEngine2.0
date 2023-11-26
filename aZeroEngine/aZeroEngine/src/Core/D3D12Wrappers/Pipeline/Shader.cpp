@@ -5,7 +5,8 @@ void aZero::D3D12::Shader::Initialize(Shader::TYPE type, const std::string& srcF
 {
 	if (!m_compiledShader)
 	{
-		// Init
+		// TODO - Call CompileFromFile and store all the necessary data in the maps etc...
+		// CompileFromFile(srcFilePath);
 		m_shaderType = type;
 		m_compiledShader = HelperFunctions::LoadBlobFromFile(srcFilePath);
 	}

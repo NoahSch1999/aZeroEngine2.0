@@ -5,7 +5,7 @@ namespace aZero
 {
 	namespace ECS
 	{
-		class ECSWrapper
+		class ECS
 		{
 		private:
 			std::unique_ptr<EntityManager> m_entityManager = nullptr;
@@ -13,20 +13,20 @@ namespace aZero
 			std::unique_ptr<SystemManager> m_systemManager = nullptr;
 
 		public:
-			ECSWrapper()
+			ECS()
 			{
 				m_systemManager = std::make_unique<SystemManager>();
 				m_componentManager = std::make_unique<ComponentManager>(*m_systemManager.get());
 				m_entityManager = std::make_unique<EntityManager>(*m_componentManager.get(), *m_systemManager.get());
 			}
 
-			~ECSWrapper() = default;
+			~ECS() = default;
 
 			// TODO - Implement move and copy constructors / operators
-			ECSWrapper(const ECSWrapper&) = delete;
-			ECSWrapper(ECSWrapper&&) = delete;
-			ECSWrapper operator=(const ECSWrapper&) = delete;
-			ECSWrapper operator=(ECSWrapper&&) = delete;
+			ECS(const ECS&) = delete;
+			ECS(ECS&&) = delete;
+			ECS operator=(const ECS&) = delete;
+			ECS operator=(ECS&&) = delete;
 
 			EntityManager& GetEntityManager() { return *m_entityManager.get(); }
 			ComponentManager& GetComponentManager() { return *m_componentManager.get(); }

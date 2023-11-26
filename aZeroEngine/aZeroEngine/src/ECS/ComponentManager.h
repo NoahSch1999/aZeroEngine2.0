@@ -8,16 +8,18 @@ namespace aZero
 {
 	namespace ECS
 	{
+		// TODO - Remove macros
 		#define COMPONENTS_STARTAMOUNT 100
 		#define COMPONENTS_PERINCREMENT 100
 
 		class ComponentManager;
 
+		// TODO - Try to remove this base class
 		struct ComponentArrayBase
 		{
 			ComponentArrayBase() = default;
 			virtual ~ComponentArrayBase() = default;
-
+			
 			/** Pure virtual which is overriden by ComponentArray to allow MappedVector::Remove() without having to specify template parameters.
 			@param entity The Entity to remove
 			@return void
@@ -108,18 +110,12 @@ namespace aZero
 				:m_systemManager(systemManager) { }
 			~ComponentManager() = default;
 
-			// TODO - Implement move and copy constructors / operators
-			ComponentManager(const ComponentManager&) = delete;
-			ComponentManager(ComponentManager&&) = delete;
-			ComponentManager operator=(const ComponentManager&) = delete;
-			ComponentManager operator=(ComponentManager&&) = delete;
-
 			/** Registers a new component type of type T for the ComponentManager.
 			* This should be called once for each component that the ComponentManager should support.
 			@return void
 			*/
 			template<typename T>
-			void RegisterComponent()
+			void RegisterComponentType()
 			{
 				const std::type_index typeIndex = std::type_index(typeid(T));
 
@@ -149,8 +145,6 @@ namespace aZero
 				ComponentArray<T>* const componentArray = static_cast<ComponentArray<T>*>(m_componentArrayMap.at(std::type_index(typeid(T))).get());
 
 				componentArray->AddComponent(entity, std::move(T()));
-
-				m_systemManager.EntityUpdated(entity);
 			}
 
 			/** Adds a component of type T to the input Entity.
@@ -167,8 +161,6 @@ namespace aZero
 				ComponentArray<T>* const componentArray = static_cast<ComponentArray<T>*>(m_componentArrayMap.at(std::type_index(typeid(T))).get());
 
 				componentArray->AddComponent(entity, std::move(data));
-
-				m_systemManager.EntityUpdated(entity);
 			}
 
 			/** Returns a const reference to the component of type T for the input Entity.
@@ -196,6 +188,24 @@ namespace aZero
 			}
 
 			/** Removes the component of type T for the input Entity.
+			*
+			* NOTE! Contrary to ComponentManager::RemoveComponent() it doesn't remove the Entity from relevant Systems.
+			* System::Unregister() has to be called before the System in question tries to acquire the removed component.
+			* This method should be used to batch multiple remove component calls without immediately removing them from a System for performance reasons.
+			*
+			@param entity The Entity to remove the component for
+			@return void
+			*/
+			template<typename T>
+			void RemoveComponentWithoutUnRegister(Entity& entity)
+			{
+				entity.m_componentMask.set(static_cast<size_t>(m_typeToBitflag.at(std::type_index(typeid(T)))), false);
+
+				ComponentArrayBase* const base = m_componentArrayMap.at(std::type_index(typeid(T))).get();
+				base->RemoveComponent(entity);
+			}
+
+			/** Removes the component of type T for the input Entity.
 			@param entity The Entity to remove the component for
 			@return void
 			*/
@@ -207,7 +217,7 @@ namespace aZero
 				ComponentArrayBase* const base = m_componentArrayMap.at(std::type_index(typeid(T))).get();
 				base->RemoveComponent(entity);
 
-				m_systemManager.EntityUpdated(entity);
+				m_systemManager.RemoveEntityFromSystems(entity);
 			}
 
 			/** Removes the component of type T matching the input std::type_index for the input Entity.
@@ -222,8 +232,7 @@ namespace aZero
 				ComponentArrayBase* const base = m_componentArrayMap.at(typeIndex).get();
 				base->RemoveComponent(entity);
 
-				// TO DO: Try removing the need to itterate over each system per call to remove component
-				m_systemManager.EntityUpdated(entity);
+				m_systemManager.RemoveEntityFromSystems(entity);
 			}
 
 			/** Returns a reference to a ComponentArray<T>.
@@ -247,7 +256,7 @@ namespace aZero
 			/** Returns a const reference to the map containing the std::type_index and bitflags for all registered components.
 			@return std::unordered_map<std::type_index, short>&
 			*/
-			const std::unordered_map<std::type_index, int>& GetBitFlagMap() { return m_typeToBitflag; }
+			const std::unordered_map<std::type_index, int>& GetBitFlagMap() const { return m_typeToBitflag; }
 		};
 	}
 }

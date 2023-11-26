@@ -12,8 +12,8 @@ namespace aZero
 		private:
 
 		public:
-			PhysicsSystem()
-				:System(Singleton::ECS->Get().GetComponentManager())
+			PhysicsSystem(ComponentManager& componentManager)
+				:System(componentManager)
 			{
 				// Signature Setup
 				m_componentMask.set(m_componentManager.GetComponentBit<Component::Transform>());
@@ -24,6 +24,16 @@ namespace aZero
 			virtual void Update() override
 			{
 
+			}
+
+			virtual void OnRegister() override
+			{
+				printf("Entity registered for PhysicsSystem\n");
+			}
+
+			virtual void OnUnRegister() override
+			{
+				printf("Entity unregistered for PhysicsSystem\n");
 			}
 		};
 	}

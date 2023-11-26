@@ -18,58 +18,75 @@ namespace aZero
 			friend class SystemManager;
 
 		protected:
+			// TODO - Replace macro
 			std::bitset<MAXCOMPONENTS> m_componentMask;
 			ComponentManager& m_componentManager;
 			DataStructures::PackedLookupArray<int, Entity> m_entities;
 
 		public:
+			// TODO - Remove need to send in compmanager through subclass
 			System(ComponentManager& componentManager)
 				:m_componentManager(componentManager) { }
 
-			// TODO - Implement move and copy constructors / operators
-			System(const System&) = delete;
-			System(System&&) = delete;
-			System operator=(const System&) = delete;
-			System operator=(System&&) = delete;
-
 			virtual ~System() = default;
 
-			/** Binds the input Entity if it's m_componentMask matches the m_componentMask set in the System subclass constructor.
-			@param entity The Entity which should be bound
-			@return bool TRUE: Entity is either already bound or bound during this call of System::Bind(). FALSE: Entity::m_componentMask isn't compatible with System::m_componentMask
+			/** Pure virtual method which should be overridden by the inheriting subclass.
+			* Defines custom behavior related to the inheriting System when registering an Entity.
+			@return void
 			*/
-			virtual bool Bind(Entity& entity)
-			{
-				std::bitset<MAXCOMPONENTS> bitwiseResult = m_componentMask & entity.m_componentMask;
-				if (bitwiseResult != m_componentMask)
-					return false;
+			virtual void OnRegister() = 0;
 
-				if (m_entities.Exists(entity.m_id))
-					return true;
-
-				m_entities.Add(entity.m_id, std::move(entity));
-
-				return true;
-			}
-
-			/** Unbinds the input Entity.
-			@param entity The Entity which should be unbound
-			@return bool TRUE: Entity was unbound. FALSE: Entity wasn't bound
+			/** Pure virtual method which should be overridden by the inheriting subclass.
+			* Defines custom behavior related to the inheriting System when unregistering an Entity.
+			@return void
 			*/
-			virtual bool UnBind(const Entity& entity)
-			{
-				if (!m_entities.Exists(entity.m_id))
-					return false;
-
-				m_entities.Remove(entity.m_id);
-
-				return true;
-			}
-
+			virtual void OnUnRegister() = 0;
+			
 			/** Pure virtual method which should be overridden by the inheriting subclass.
 			@return void
 			*/
 			virtual void Update() = 0;
+
+			/** Registers the input Entity if it's m_componentMask matches the m_componentMask set in the System subclass constructor.
+			@param entity The Entity which should be bound
+			@return bool TRUE: Entity is either already bound or bound during this call of System::Register(). FALSE: Entity::m_componentMask isn't compatible with System::m_componentMask
+			*/
+			bool Register(const Entity& entity)
+			{
+				if (!IsRegistered(entity))
+				{
+					std::bitset<MAXCOMPONENTS> bitwiseResult = m_componentMask & entity.m_componentMask;
+					if (bitwiseResult != m_componentMask)
+						return false;
+
+					m_entities.AddCopy(entity.m_id, entity);
+
+					OnRegister();
+
+					return true;
+				}
+
+				return false;
+			}
+
+			/** Unregisters the input Entity.
+			@param entity The Entity which should be unbound
+			@return void
+			*/
+			void UnRegister(const Entity& entity)
+			{
+				if (IsRegistered(entity))
+				{
+					OnUnRegister();
+
+					m_entities.Remove(entity.m_id);
+				}
+			}
+
+			bool IsRegistered(const Entity& entity)
+			{
+				return m_entities.Exists(entity.m_id);
+			}
 
 			size_t NumEntitiesBound() const { return m_entities.GetNumElements(); }
 		};

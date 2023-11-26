@@ -1,13 +1,15 @@
 #pragma once
-#include "../PipelinePass.h"
+#include "../Shader.h"
 
 namespace aZero
 {
 	namespace D3D12
 	{
-		class ComputePass : public PipelinePass
+		class ComputePass
 		{
 		private:
+			Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso = nullptr;
+			Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 
 		public:
 			ComputePass()

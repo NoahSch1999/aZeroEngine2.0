@@ -65,7 +65,7 @@ namespace aZero
 				}
 
 				// TODO - Check if this is unnecessary
-				m_systemManager.EntityUpdated(entity);
+				m_systemManager.RemoveEntityFromSystems(entity);
 
 				m_freeEntityIDs.push(entity.m_id);
 				entity.m_id = -1;

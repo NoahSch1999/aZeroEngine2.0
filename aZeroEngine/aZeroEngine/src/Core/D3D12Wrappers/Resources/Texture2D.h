@@ -12,7 +12,7 @@ namespace aZero
 			public:
 				Texture2D() = default;
 
-				Texture2D(ID3D12Device* const device,
+				Texture2D(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const DXGI_FORMAT format,
 					const D3D12_RESOURCE_FLAGS resourceFlags,
 					const int width, const int height,
@@ -20,10 +20,10 @@ namespace aZero
 					const D3D12_CLEAR_VALUE* const clearValue = nullptr,
 					const D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON)
 				{
-					Texture2D::Initialize(device, format, resourceFlags, width, height, mipLevels, sampleCount, clearValue, initialState);
+					Texture2D::Initialize(resourceRecycler, device, format, resourceFlags, width, height, mipLevels, sampleCount, clearValue, initialState);
 				}
 
-				void Initialize(ID3D12Device* const device,
+				void Initialize(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const DXGI_FORMAT format,
 					const D3D12_RESOURCE_FLAGS resourceFlags,
 					const int width, const int height,
@@ -43,7 +43,7 @@ namespace aZero
 					description.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 					description.Flags = resourceFlags;
 
-					ResourceBase::Initialize(device, description, D3D12_HEAP_TYPE_DEFAULT, clearValue, initialState);
+					ResourceBase::Initialize(resourceRecycler, device, description, D3D12_HEAP_TYPE_DEFAULT, clearValue, initialState);
 				}
 
 				virtual ~Texture2D()

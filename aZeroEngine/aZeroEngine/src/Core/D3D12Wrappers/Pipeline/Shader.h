@@ -7,10 +7,41 @@ namespace aZero
 {
 	namespace D3D12
 	{
+		struct ShaderTypes
+		{
+			class VertexShader
+			{
+				bool dummy;
+			};
+
+			class PixelShader
+			{
+				bool dummy;
+			};
+		};
+
+		struct DescriptorTypes
+		{
+			class CBV
+			{
+				bool dummy;
+			};
+
+			class SRV
+			{
+				bool dummy;
+			};
+
+			class UAV
+			{
+				bool dummy;
+			};
+		};
+
 		class Shader
 		{
 		public:
-			enum class TYPE { VS, GS, PS, MAX_INVALID };
+			enum class TYPE { VS, PS, COMPUTE, MAX_INVALID };
 
 			struct ShaderParameter
 			{
@@ -28,11 +59,20 @@ namespace aZero
 				D3D12_ROOT_PARAMETER_TYPE ParameterType;
 			};
 
+			struct StaticSamplerDesc
+			{
+				D3D12_STATIC_SAMPLER_DESC Desc;
+			};
+
 		private:
 
 			TYPE m_shaderType = TYPE::MAX_INVALID;
 			std::unordered_map<std::string, RootConstant> m_rootConstants;
 			std::unordered_map<std::string, RootDescriptor> m_rootDescriptor;
+
+			// TODO - samplers and rtv formats should be deduced from the shader compiler and passed to the pipeline pass creation
+			std::vector<StaticSamplerDesc> m_staticSamplers; // NOTE - Only for none-COMPUTE type shaders
+			std::vector<DXGI_FORMAT> m_renderTargets; // NOTE - Only for PS type shaders
 
 			Microsoft::WRL::ComPtr<ID3DBlob> m_compiledShader = nullptr;
 
@@ -55,6 +95,10 @@ namespace aZero
 
 			void Initialize(Shader::TYPE type, const std::string& srcFilePath);
 
+			ID3DBlob* const GetShaderBlob() const { return m_compiledShader.Get(); }
+
+			// TODO - The goal is that all adding should be done automatically through the CompileFromFile method.
+			// Thus, these methods should be removed when that is implemented.
 			template<typename Parameter>
 			void AddParemeter(Parameter&& param)
 			{
@@ -73,6 +117,16 @@ namespace aZero
 				}
 			}
 
+			void AddRenderTarget(DXGI_FORMAT format)
+			{
+				m_renderTargets.push_back(format);
+			}
+
+			void AddStaticSampler(const StaticSamplerDesc& sampler)
+			{
+				m_staticSamplers.push_back(sampler);
+			}
+
 			const std::unordered_map<std::string, RootConstant>& GetRootConstants() const
 			{
 				return m_rootConstants;
@@ -81,6 +135,11 @@ namespace aZero
 			const std::unordered_map<std::string, RootDescriptor>& GetRootDescriptors() const
 			{
 				return m_rootDescriptor;
+			}
+
+			const std::vector<DXGI_FORMAT>& GetRenderTargetFormats() const
+			{
+				return m_renderTargets;
 			}
 		};
 	}

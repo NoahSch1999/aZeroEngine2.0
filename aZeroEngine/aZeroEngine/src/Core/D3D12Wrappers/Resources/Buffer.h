@@ -10,7 +10,7 @@ namespace aZero
 			class Buffer : public ResourceBase
 			{
 			protected:
-				void Initialize(ID3D12Device* const device, 
+				void Initialize(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const UINT numBytes,
 					const DXGI_FORMAT format,
 					const UINT alignment,
@@ -29,21 +29,21 @@ namespace aZero
 					description.Format = format;
 					description.Alignment = alignment;
 
-					ResourceBase::Initialize(device, description, heapType, nullptr, initialState);
+					ResourceBase::Initialize(resourceRecycler, device, description, heapType, nullptr, initialState);
 				}
 
 			public:
 
 				Buffer() = default;
 
-				Buffer(ID3D12Device* const device,
+				Buffer(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const UINT numBytes,
 					const DXGI_FORMAT format,
 					const UINT alignment,
 					const D3D12_HEAP_TYPE heapType,
 					const D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON)
 				{
-					Buffer::Initialize(device, numBytes, format, alignment, heapType, initialState);
+					Buffer::Initialize(resourceRecycler, device, numBytes, format, alignment, heapType, initialState);
 				}
 
 				virtual ~Buffer()

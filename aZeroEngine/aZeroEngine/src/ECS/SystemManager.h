@@ -15,12 +15,6 @@ namespace aZero
 		public:
 			SystemManager() = default;
 
-			// TODO - Implement move and copy constructors / operators
-			SystemManager(const SystemManager&) = delete;
-			SystemManager(SystemManager&&) = delete;
-			SystemManager operator=(const SystemManager&) = delete;
-			SystemManager operator=(SystemManager&&) = delete;
-
 			/** Registers the input System subclass and returns a std::shared_ptr to the shared memory block.
 			@param componentManager The ComponentManager which the System subclass can use to access components
 			@param args An arbitrary number of arguments which will be passed to the constructor of System subclass after componentManager
@@ -36,21 +30,19 @@ namespace aZero
 				return newSystem;
 			}
 
-			/** Checks if the Entity should be bound or unbound from a registered System subclass depending on it's component bitmask.
-			* Binds the Entity to a registered System subclass if it has the neccessary components.
-			* Unbinds the Entity from a registered System subclass if it doesn't have the neccessary components.
-			@param entity The Entity which should be checked
-			@return void
-			*/
-			void EntityUpdated(Entity& entity)
+			void AddEntityToSystems(const Entity& entity)
 			{
 				for (auto& system : m_registeredSystems)
 				{
-					const bool bound = system.second->Bind(entity);
-					if (!bound)
-					{
-						system.second->UnBind(entity);
-					}
+					system.second->Register(entity);
+				}
+			}
+
+			void RemoveEntityFromSystems(const Entity& entity)
+			{
+				for (auto& system : m_registeredSystems)
+				{
+					system.second->UnRegister(entity);
 				}
 			}
 		};

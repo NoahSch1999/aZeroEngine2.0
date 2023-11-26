@@ -24,8 +24,11 @@ namespace aZero
 
 			BackBuffers m_backBuffers;
 
+			ResourceRecycler* m_resourceRecycler = nullptr;
+
 		public:
-			SwapChain()
+			SwapChain(ResourceRecycler& resourceRecycler)
+				:m_resourceRecycler(&resourceRecycler)
 			{
 
 			}
@@ -36,7 +39,7 @@ namespace aZero
 				{
 					if (buffer)
 					{
-						Singleton::ResourceRecycler->Get().RecycleResource(buffer);
+						m_resourceRecycler->RecycleResource(buffer);
 					}
 				}
 			}

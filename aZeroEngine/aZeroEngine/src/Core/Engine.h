@@ -25,30 +25,37 @@
 #include "Caches/AudioCache.h"
 #include "Caches/ShaderCache.h"
 
-#include "D3D12Wrappers/Resources/Buffer.h"
+#include "D3D12Wrappers/Pipeline/Graphics/GraphicsPass.h"
 
 namespace aZero
 {
 	class Engine : public Helpers::NoneCopyable
 	{
 	private:
+		// D3D12 Core
 		Microsoft::WRL::ComPtr<ID3D12Device> m_device = nullptr;
+		std::unique_ptr<D3D12::DescriptorManager> m_descriptorManager = nullptr;
 
+		// Window
 		std::shared_ptr<Window::Window> m_activeWindow = nullptr;
-		std::shared_ptr<Camera> m_activeCamera = nullptr;
 
-		std::unordered_map<std::string, std::shared_ptr<Scene>> m_scenes;
-
-		// Custom Systems
+		// ECS
+		std::unique_ptr<ECS::ECS> m_ecs = nullptr;
 		std::shared_ptr<ECS::RenderSystem> m_renderSystem = nullptr;
 		std::shared_ptr<ECS::PhysicsSystem> m_physicsSystem = nullptr;
 
-		// Asset Caches
+		// Caches
 		std::unique_ptr<MeshCache> m_meshCache = nullptr;
 		std::unique_ptr<TextureCache> m_textureCache = nullptr;
 		std::unique_ptr<MaterialCache> m_materialCache = nullptr;
 		std::unique_ptr<AudioCache> m_audioCache = nullptr;
 		std::unique_ptr<D3D12::Shader> m_shaderCache = nullptr;
+
+		// Scenes
+		std::unordered_map<std::string, std::shared_ptr<Scene>> m_scenes;
+
+		// Temporary
+		std::shared_ptr<Camera> m_activeCamera = nullptr;
 
 	public:
 		Engine()
@@ -63,20 +70,20 @@ namespace aZero
 				throw;
 			}
 
-			// Setup descriptors
-			Singleton::DescriptorManager->Get().Initialize(m_device.Get());
+			m_ecs = std::make_unique<ECS::ECS>();
+			m_descriptorManager = std::make_unique<D3D12::DescriptorManager>(m_device.Get());
 
 			// ECS Setup
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::Transform>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::Mesh>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::Material>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::PointLight>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::SpotLight>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::DirectionalLight>();
-			Singleton::ECS->Get().GetComponentManager().RegisterComponent<Component::RigidBody>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::Transform>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::Mesh>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::Material>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::PointLight>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::SpotLight>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::DirectionalLight>();
+			m_ecs->GetComponentManager().RegisterComponentType<Component::RigidBody>();
 
-			m_renderSystem = Singleton::ECS->Get().GetSystemManager().RegisterSystem<ECS::RenderSystem>();
-			m_physicsSystem = Singleton::ECS->Get().GetSystemManager().RegisterSystem<ECS::PhysicsSystem>();
+			m_renderSystem = m_ecs->GetSystemManager().RegisterSystem<ECS::RenderSystem>(m_ecs->GetComponentManager());
+			m_physicsSystem = m_ecs->GetSystemManager().RegisterSystem<ECS::PhysicsSystem>(m_ecs->GetComponentManager());
 
 			// Asset Cache Setup
 			m_meshCache = std::make_unique<MeshCache>();

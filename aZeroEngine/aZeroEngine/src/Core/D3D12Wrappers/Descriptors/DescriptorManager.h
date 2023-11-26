@@ -16,17 +16,26 @@ namespace aZero
 		public:
 			DescriptorManager() = default;
 
+			DescriptorManager(ID3D12Device* const device)
+			{
+				Initialize(device);
+			}
+
 			~DescriptorManager()
 			{
 
 			}
 
+			// TODO - Add heap expansion and remove hardcodeded values
 			void Initialize(ID3D12Device* const device)
 			{
-				m_resourceHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10000, true);
-				m_samplerHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 10, true);
-				m_rtvHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 100, false);
-				m_dsvHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 100, false);
+				if (!m_resourceHeap.GetDescriptorHeap())
+				{
+					m_resourceHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10000, true);
+					m_samplerHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 10, true);
+					m_rtvHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 100, false);
+					m_dsvHeap.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 100, false);
+				}
 			}
 
 			// TODO - Define copy stuff etc...

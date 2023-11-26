@@ -118,6 +118,29 @@ namespace aZero
 				}
 			}
 
+			/**Adds an element to the map with the specified key.
+			* Time complexity is O(1) on average except when the internal std::vector is full.
+			* The input element won't be added if an element is already associated with the input key.
+			@param key Key to associate the element with.
+			@param data The element data.
+			@return void
+			*/
+			void AddCopy(const KeyType& key, const ElementType& data)
+			{
+				if (auto foundPairIter = m_keyToIndex.find(key); foundPairIter == m_keyToIndex.end())
+				{
+					if (m_numElements == m_elements.capacity())
+					{
+						m_elements.reserve(m_numElements + m_perIncrementSize);
+					}
+
+					m_keyToIndex.emplace(key, m_numElements);
+					m_indexToKey.emplace(m_numElements, key);
+					m_elements.emplace_back(data);
+					m_numElements++;
+				}
+			}
+
 			/**Removes an element associated with the input key value.
 			* Time complexity is O(1) on average.
 			@param key Key associated with the element to remove.
