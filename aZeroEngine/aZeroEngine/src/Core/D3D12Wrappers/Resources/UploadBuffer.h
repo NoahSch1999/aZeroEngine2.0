@@ -38,6 +38,18 @@ namespace aZero
 					}
 				}
 
+				UploadBuffer(UploadBuffer&& other) noexcept
+					:Buffer(std::move(other))
+				{
+					m_mappedPtr = other.m_mappedPtr;
+				}
+
+				UploadBuffer& operator=(UploadBuffer&& other) noexcept
+				{
+					Buffer::operator=(std::move(other));
+					return *this;
+				}
+
 				virtual ~UploadBuffer()
 				{
 

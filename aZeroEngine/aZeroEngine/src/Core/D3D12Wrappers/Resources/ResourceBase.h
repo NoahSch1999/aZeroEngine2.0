@@ -48,6 +48,26 @@ namespace aZero
 				ResourceBase() = default;
 			public:
 
+				ResourceBase(ResourceBase&& other) noexcept
+				{
+					m_resource = other.m_resource;
+					m_resourceRecycler = other.m_resourceRecycler;
+					m_resourceState = other.m_resourceState;
+					other.m_resource = nullptr;
+				}
+
+				ResourceBase& operator=(ResourceBase&& other) noexcept
+				{
+					if (this != &other)
+					{
+						m_resource = other.m_resource;
+						m_resourceRecycler = other.m_resourceRecycler;
+						m_resourceState = other.m_resourceState;
+						other.m_resource = nullptr;
+					}
+					return *this;
+				}
+
 				~ResourceBase()
 				{
 					if (m_resource)

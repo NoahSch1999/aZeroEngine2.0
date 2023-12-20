@@ -1,50 +1,61 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <optional>
 
 #include "../D3D12Wrappers/Pipeline/Shader.h"
 
-#define SHADER_OBJECT_DIRECTORY ""
+#define SHADER_OBJECT_DIRECTORY "../x64/Debug/"
 
 namespace aZero
 {
-	namespace D3D12
+	class ShaderCache
 	{
-		class ShaderCache
+	private:
+		std::unordered_map<std::string, D3D12::Shader> m_shaders;
+
+	public:
+		ShaderCache()
 		{
-		private:
-			std::unordered_map<std::string, Shader> m_shaders;
 
-		public:
-			ShaderCache()
+		}
+
+		~ShaderCache()
+		{
+
+		}
+
+		D3D12::Shader* GetShader(const std::string& shaderSourceFileName)
+		{
+			if (auto foundShader = m_shaders.find(shaderSourceFileName); foundShader != m_shaders.end())
 			{
-
+				return &foundShader->second;
 			}
 
-			~ShaderCache()
+			return nullptr;
+		}
+
+		// TODO - Change so it parses (add params etc), compiles and stores the shader
+		// TODO - Remove macro and TYPE spec
+		void CompileAndStore(const std::string& shaderSourceFileName, D3D12::Shader::TYPE type)
+		{
+			if (m_shaders.count(shaderSourceFileName) == 0)
 			{
-
+				const std::string absolutePath(SHADER_OBJECT_DIRECTORY + shaderSourceFileName + ".cso"); // TODO - Change extension to .pso
+				D3D12::Shader newShader(type, absolutePath);
+				m_shaders.emplace(shaderSourceFileName, std::move(newShader));
 			}
+		}
 
-			void CompileAndStore(const std::string& shaderSourceFileName)
-			{
-				// Compile shader with path
-				const std::string absolutePath(SHADER_OBJECT_DIRECTORY + shaderSourceFileName + ".hlsl");
+		void Remove(const std::string& shaderSourceFileName)
+		{
+			m_shaders.erase(shaderSourceFileName);
+		}
 
-				// Store shader in m_shaders
-
-			}
-
-			void Remove(const std::string& shaderSourceFileName)
-			{
-				m_shaders.erase(shaderSourceFileName);
-			}
-
-			// TODO - Implement move and copy constructors / operators
-			ShaderCache(const ShaderCache&) = delete;
-			ShaderCache(ShaderCache&&) = delete;
-			ShaderCache operator=(const ShaderCache&) = delete;
-			ShaderCache operator=(ShaderCache&&) = delete;
-		};
-	}
+		// TODO - Implement move and copy constructors / operators
+		ShaderCache(const ShaderCache&) = delete;
+		ShaderCache(ShaderCache&&) = delete;
+		ShaderCache operator=(const ShaderCache&) = delete;
+		ShaderCache operator=(ShaderCache&&) = delete;
+	};
 }

@@ -15,26 +15,26 @@ namespace aZero
 				Texture2D(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const DXGI_FORMAT format,
 					const D3D12_RESOURCE_FLAGS resourceFlags,
-					const int width, const int height,
+					const DXM::Vector2& dimensions,
 					const int mipLevels, const int sampleCount,
 					const D3D12_CLEAR_VALUE* const clearValue = nullptr,
 					const D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON)
 				{
-					Texture2D::Initialize(resourceRecycler, device, format, resourceFlags, width, height, mipLevels, sampleCount, clearValue, initialState);
+					Texture2D::Initialize(resourceRecycler, device, format, resourceFlags, dimensions, mipLevels, sampleCount, clearValue, initialState);
 				}
 
 				void Initialize(ResourceRecycler& resourceRecycler, ID3D12Device* const device,
 					const DXGI_FORMAT format,
 					const D3D12_RESOURCE_FLAGS resourceFlags,
-					const int width, const int height,
+					const DXM::Vector2& dimensions,
 					const int mipLevels, const int sampleCount,
 					const D3D12_CLEAR_VALUE* const clearValue = nullptr,
 					const D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON)
 				{
 					D3D12_RESOURCE_DESC description = {};
 					description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-					description.Width = width;
-					description.Height = height;
+					description.Width = dimensions.x;
+					description.Height = dimensions.y;
 					description.DepthOrArraySize = 1;
 					description.MipLevels = mipLevels;
 					description.Format = format;
@@ -44,6 +44,18 @@ namespace aZero
 					description.Flags = resourceFlags;
 
 					ResourceBase::Initialize(resourceRecycler, device, description, D3D12_HEAP_TYPE_DEFAULT, clearValue, initialState);
+				}
+
+				Texture2D(Texture2D&& other) noexcept
+					:ResourceBase(std::move(other))
+				{
+
+				}
+
+				Texture2D& operator=(Texture2D&& other) noexcept
+				{
+					ResourceBase::operator=(std::move(other));
+					return *this;
 				}
 
 				virtual ~Texture2D()

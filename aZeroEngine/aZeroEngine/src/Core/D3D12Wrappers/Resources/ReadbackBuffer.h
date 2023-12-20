@@ -37,6 +37,18 @@ namespace aZero
 					}
 				}
 
+				ReadbackBuffer(ReadbackBuffer&& other) noexcept
+					:Buffer(std::move(other))
+				{
+
+				}
+
+				ReadbackBuffer& operator=(ReadbackBuffer&& other) noexcept
+				{
+					Buffer::operator=(std::move(other));
+					return *this;
+				}
+
 				virtual ~ReadbackBuffer()
 				{
 					if (!m_resource)

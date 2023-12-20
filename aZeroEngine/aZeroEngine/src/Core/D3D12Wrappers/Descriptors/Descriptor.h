@@ -24,9 +24,9 @@ namespace aZero
 		public:
 			Descriptor() = default;
 
-			D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const { m_cpuHandle; }
-			D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const { m_gpuHandle; }
-			int GetHeapIndex() const { m_heapIndex; }
+			D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const { return m_cpuHandle; }
+			D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const { return m_gpuHandle; }
+			int GetHeapIndex() const { return m_heapIndex; }
 		};
 	}
 }

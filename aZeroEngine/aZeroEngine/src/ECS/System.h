@@ -88,7 +88,7 @@ namespace aZero
 				return m_entities.Exists(entity.m_id);
 			}
 
-			size_t NumEntitiesBound() const { return m_entities.GetNumElements(); }
+			int NumEntitiesBound() const { return m_entities.GetNumElements(); }
 		};
 	}
 }

@@ -24,14 +24,20 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR commandLine, int s
 
 	{
 		// Setup engine
-		aZero::Engine engine;
+		aZero::Engine engine(instance);
 
 		// Get Window associated with the engine
+		std::shared_ptr<aZero::Camera> camera(engine.GetActiveCamera());
 		std::shared_ptr<aZero::Window::Window> activeWindow(engine.GetActiveWindow());
 
 		// Run engine
-		while (!GetAsyncKeyState(VK_ESCAPE))
+		while (activeWindow->IsOpen())
 		{
+			if (GetAsyncKeyState(VK_ESCAPE))
+			{
+				break;
+			}
+
 			engine.BeginFrame();
 
 			engine.Update();

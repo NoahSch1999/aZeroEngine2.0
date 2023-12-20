@@ -33,7 +33,7 @@ namespace aZero
 
 			void Initialize(ID3D12Device* const device, const D3D12_DESCRIPTOR_HEAP_TYPE type, const int numDescriptors, const bool gpuVisible = false)
 			{
-				if (m_heap)
+				if (!m_heap)
 				{
 					D3D12_DESCRIPTOR_HEAP_DESC desc;
 					desc.NumDescriptors = numDescriptors;
@@ -73,7 +73,7 @@ namespace aZero
 			DescriptorHeap operator=(const DescriptorHeap&) = delete;
 			DescriptorHeap operator=(DescriptorHeap&&) = delete;
 
-			const ID3D12DescriptorHeap* const GetDescriptorHeap() const { return m_heap.Get(); }
+			ID3D12DescriptorHeap* const GetDescriptorHeap() const { return m_heap.Get(); }
 
 			Descriptor GetDescriptor()
 			{

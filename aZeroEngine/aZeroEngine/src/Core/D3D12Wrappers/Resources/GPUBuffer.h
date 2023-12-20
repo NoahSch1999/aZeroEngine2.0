@@ -33,6 +33,18 @@ namespace aZero
 					}
 				}
 
+				GPUBuffer(GPUBuffer&& other) noexcept
+					:Buffer(std::move(other))
+				{
+
+				}
+
+				GPUBuffer& operator=(GPUBuffer&& other) noexcept
+				{
+					Buffer::operator=(std::move(other));
+					return *this;
+				}
+
 				virtual ~GPUBuffer()
 				{
 

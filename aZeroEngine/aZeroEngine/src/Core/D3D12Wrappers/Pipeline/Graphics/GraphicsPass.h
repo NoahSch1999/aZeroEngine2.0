@@ -1,5 +1,7 @@
 #pragma once
 #include "../Shader.h"
+#include "../InputLayout.h"
+#include "../../Resources/GPUBuffer.h"
 
 namespace aZero
 {
@@ -25,14 +27,13 @@ namespace aZero
 				DXGI_SAMPLE_DESC SampleDesc;
 				DepthStencilDesc DepthStencilDesc;
 				std::vector<D3D12_STATIC_SAMPLER_DESC> StaticSamplers;
+				Shader VertexShader;
+				Shader PixelShader;
 			};
 
 		private:
 			Microsoft::WRL::ComPtr<ID3D12PipelineState> m_pso = nullptr;
 			Microsoft::WRL::ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
-
-			Shader m_vertexShader;
-			Shader m_pixelShader;
 
 			PassDescription m_description;
 
@@ -44,7 +45,7 @@ namespace aZero
 			{
 				std::vector<D3D12_ROOT_PARAMETER> allParams;
 
-				for (const auto& [name, param] : m_vertexShader.GetRootConstants())
+				for (const auto& [name, param] : m_description.VertexShader.GetRootConstants())
 				{
 					D3D12_ROOT_PARAMETER rootParam;
 					rootParam.Constants.ShaderRegister = param.BindingSlot;
@@ -56,7 +57,7 @@ namespace aZero
 					allParams.push_back(rootParam);
 				}
 
-				for (const auto& [name, param] : m_pixelShader.GetRootConstants())
+				for (const auto& [name, param] : m_description.PixelShader.GetRootConstants())
 				{
 					D3D12_ROOT_PARAMETER rootParam;
 					rootParam.Constants.ShaderRegister = param.BindingSlot;
@@ -68,7 +69,7 @@ namespace aZero
 					allParams.push_back(rootParam);
 				}
 
-				for (const auto& [name, param] : m_vertexShader.GetRootDescriptors())
+				for (const auto& [name, param] : m_description.VertexShader.GetRootDescriptors())
 				{
 					D3D12_ROOT_PARAMETER rootParam;
 					rootParam.Descriptor.ShaderRegister = param.BindingSlot;
@@ -79,7 +80,7 @@ namespace aZero
 					allParams.push_back(rootParam);
 				}
 
-				for (const auto& [name, param] : m_pixelShader.GetRootDescriptors())
+				for (const auto& [name, param] : m_description.PixelShader.GetRootDescriptors())
 				{
 					D3D12_ROOT_PARAMETER rootParam;
 					rootParam.Descriptor.ShaderRegister = param.BindingSlot;
@@ -93,7 +94,7 @@ namespace aZero
 				const D3D12_ROOT_SIGNATURE_DESC desc{ 
 					(UINT)allParams.size(),
 					allParams.data(),
-					m_description.StaticSamplers.size(), &m_description.StaticSamplers[0],
+					m_description.StaticSamplers.size(), m_description.StaticSamplers.data(),
 					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 					| D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED
 					| D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED };
@@ -120,7 +121,7 @@ namespace aZero
 				ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
 #ifdef _DEBUG
-				psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
+				// psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG; // TODO - Add support on warp devices
 #endif // DEBUG
 
 				psoDesc.pRootSignature = m_rootSignature.Get();
@@ -128,11 +129,12 @@ namespace aZero
 				psoDesc.RasterizerState = m_description.RasterDesc;
 				psoDesc.BlendState = m_description.BlendDesc;
 				psoDesc.InputLayout = m_description.InputLayoutDesc;
+				psoDesc.PrimitiveTopologyType = m_description.TopologyType;
 
-				psoDesc.NumRenderTargets = m_pixelShader.GetRenderTargetFormats().size();
-				for (int i = 0; i < m_pixelShader.GetRenderTargetFormats().size(); i++)
+				psoDesc.NumRenderTargets = m_description.PixelShader.GetRenderTargetFormats().size();
+				for (int i = 0; i < m_description.PixelShader.GetRenderTargetFormats().size(); i++)
 				{
-					psoDesc.RTVFormats[i] = m_pixelShader.GetRenderTargetFormats()[i];
+					psoDesc.RTVFormats[i] = m_description.PixelShader.GetRenderTargetFormats()[i];
 				}
 
 				if (m_description.DepthStencilDesc.Description.DepthEnable)
@@ -142,13 +144,13 @@ namespace aZero
 				}
 
 				psoDesc.VS = {
-					reinterpret_cast<BYTE*>(m_vertexShader.GetShaderBlob()->GetBufferPointer()),
-					m_vertexShader.GetShaderBlob()->GetBufferSize()
+					reinterpret_cast<BYTE*>(m_description.VertexShader.GetShaderBlob()->GetBufferPointer()),
+					m_description.VertexShader.GetShaderBlob()->GetBufferSize()
 				};
 
 				psoDesc.PS = {
-					reinterpret_cast<BYTE*>(m_pixelShader.GetShaderBlob()->GetBufferPointer()),
-					m_pixelShader.GetShaderBlob()->GetBufferSize()
+					reinterpret_cast<BYTE*>(m_description.PixelShader.GetShaderBlob()->GetBufferPointer()),
+					m_description.PixelShader.GetShaderBlob()->GetBufferSize()
 				};
 
 				HRESULT hr = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pso.GetAddressOf()));
@@ -162,28 +164,15 @@ namespace aZero
 		public:
 			GraphicsPass() = default;
 
-			GraphicsPass(ID3D12Device* const device, const PassDescription& description, const Shader& vShader, const Shader& pShader)
-				:m_vertexShader(vShader), m_pixelShader(pShader), m_description(description)
+			GraphicsPass(ID3D12Device* const device, const PassDescription& description)
+				:m_description(description)
 			{
 				Build(device);
 			}
 
 			~GraphicsPass() = default;
 
-			void SetVertexShader(const Shader& vertexShader)
-			{
-				m_vertexShader = vertexShader;
-			}
-
-			void SetPixelShader(const Shader& pixelShader)
-			{
-				m_pixelShader = pixelShader;
-			}
-
-			void SetDescripton(const PassDescription& desc)
-			{
-				m_description = desc;
-			}
+			GraphicsPass::PassDescription GetDescripton() const { return m_description; }
 
 			void Build(ID3D12Device* const device)
 			{
@@ -194,10 +183,35 @@ namespace aZero
 				}
 			}
 
-			void SetPass(ID3D12GraphicsCommandList* const commandList)
+			void BeginPass(ID3D12GraphicsCommandList* const commandList, ID3D12DescriptorHeap* ResourceHeap, ID3D12DescriptorHeap* SamplerHeap)
 			{
+
 				commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 				commandList->SetPipelineState(m_pso.Get());
+
+				ID3D12DescriptorHeap* heaps[2] = { ResourceHeap, SamplerHeap };
+				commandList->SetDescriptorHeaps(2, heaps);
+
+				switch (m_description.TopologyType)
+				{
+				case D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE:
+				{
+					commandList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					break;
+				}
+				case D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
+				{
+					commandList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST);
+					break;
+				}
+				case D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT:
+				{
+					commandList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
+					break;
+				}
+				default:
+					throw;
+				}
 			}
 
 			template<typename ShaderType>
@@ -206,13 +220,13 @@ namespace aZero
 				if constexpr (std::is_same_v<ShaderType, ShaderTypes::VertexShader>)
 				{
 					commandList->SetGraphicsRoot32BitConstants(m_vsParameterNameToRootSignatureSlot.at(paramName), 
-						m_vertexShader.GetRootConstants().at(paramName).Num32BitValues, 
+						m_description.VertexShader.GetRootConstants().at(paramName).Num32BitValues,
 						data, 0);
 				}
 				else if constexpr (std::is_same_v<ShaderType, ShaderTypes::PixelShader>)
 				{
 					commandList->SetGraphicsRoot32BitConstants(m_psParameterNameToRootSignatureSlot.at(paramName),
-						m_vertexShader.GetRootConstants().at(paramName).Num32BitValues,
+						m_description.PixelShader.GetRootConstants().at(paramName).Num32BitValues,
 						data, 0);
 				}
 			}
@@ -250,6 +264,31 @@ namespace aZero
 						commandList->SetGraphicsRootUnorderedAccessView(m_psParameterNameToRootSignatureSlot.at(paramName), address);
 					}
 				}
+			}
+
+			void SetOutputTargets(ID3D12GraphicsCommandList* const commandList, const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& renderTargets, D3D12_CPU_DESCRIPTOR_HANDLE depthStencil)
+			{
+				commandList->OMSetRenderTargets(renderTargets.size(), renderTargets.data(), 0, &depthStencil);
+			}
+		
+			void SetVertexBuffer(ID3D12GraphicsCommandList* const commandList, const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView, int startSlot, int numViews)
+			{
+				commandList->IASetVertexBuffers(startSlot, numViews, &vertexBufferView);
+			}
+
+			void SetIndexBuffer(ID3D12GraphicsCommandList* const commandList, const D3D12_INDEX_BUFFER_VIEW& indexBufferView, int startSlot, int numViews)
+			{
+				commandList->IASetIndexBuffer(&indexBufferView);
+			}
+
+			void DrawInstanced(ID3D12GraphicsCommandList* const commandList, int vertexCountPerInstance, int instanceCount, int startVertexOffset, int startInstanceOffset)
+			{
+				commandList->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexOffset, startInstanceOffset);
+			}
+
+			void DrawIndexedInstanced(ID3D12GraphicsCommandList* const commandList, int indexCountPerInstance, int instanceCount, int startVertexOffset, int startIndexOffset, int startInstanceOffset)
+			{
+				commandList->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexOffset, startVertexOffset, startInstanceOffset);
 			}
 		};
 	}

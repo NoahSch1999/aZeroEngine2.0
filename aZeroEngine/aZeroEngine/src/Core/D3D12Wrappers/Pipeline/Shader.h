@@ -47,16 +47,31 @@ namespace aZero
 			{
 				std::string Name = "INVALID";
 				int BindingSlot = -1;
+				ShaderParameter(const std::string& name, int bindingSlot)
+				{
+					Name = name;
+					BindingSlot = bindingSlot;
+				}
 			};
 
 			struct RootConstant : public ShaderParameter
 			{
-				int Num32BitValues;
+				int Num32BitValues = 0;
+				RootConstant(const std::string& name, int bindingSlot, int num32BitValues)
+					:ShaderParameter(name, bindingSlot)
+				{
+					Num32BitValues = num32BitValues;
+				}
 			};
 
 			struct RootDescriptor : public ShaderParameter
 			{
 				D3D12_ROOT_PARAMETER_TYPE ParameterType;
+				RootDescriptor(const std::string& name, int bindingSlot, D3D12_ROOT_PARAMETER_TYPE parameterType)
+					:ShaderParameter(name, bindingSlot)
+				{
+					ParameterType = parameterType;
+				}
 			};
 
 			struct StaticSamplerDesc
@@ -100,7 +115,7 @@ namespace aZero
 			// TODO - The goal is that all adding should be done automatically through the CompileFromFile method.
 			// Thus, these methods should be removed when that is implemented.
 			template<typename Parameter>
-			void AddParemeter(Parameter&& param)
+			void AddParameter(Parameter&& param)
 			{
 				if constexpr (std::is_same_v<Parameter, RootConstant>)
 				{

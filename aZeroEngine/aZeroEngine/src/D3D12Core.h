@@ -5,6 +5,7 @@
 #include <wrl.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
+#include <dxgi1_5.h>
 #include <d3dcompiler.h>
 #include <DirectXTK12/Inc/SimpleMath.h>
 
