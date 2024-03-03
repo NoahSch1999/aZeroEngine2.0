@@ -2,33 +2,41 @@
 #include "AssetCacheBase.h"
 #include "../AssetTypes/MeshAsset.h"
 
-#define MESH_ASSET_DIRECTORY ""
-
 namespace aZero
 {
-	class MeshCache : public AssetCacheBase<Asset::Mesh>
+	class MeshCache : public AssetCacheBase<std::string, Asset::Mesh>
 	{
 	private:
-		virtual void ImplLoad(std::ifstream& inFile, Asset::Mesh& dstAsset) override
-		{
-
-		}
-
-		virtual void ImplSave(std::ofstream& outFile, const Asset::Mesh& srcAsset) const override
-		{
-
-		}
-
-		virtual void ImplRemove(const std::string& key) override
-		{
-
-		}
+		D3D12::ResourceRecycler& m_ResourceRecycler;
 
 	public:
-		MeshCache()
-			:AssetCacheBase(10, 10)
+		MeshCache(D3D12::ResourceRecycler& ResourceRecycler)
+			:AssetCacheBase(10), m_ResourceRecycler(ResourceRecycler)
 		{
 
+		}
+
+		void LoadFromFile(const std::string& FilePath, ID3D12GraphicsCommandList* CmdList)
+		{
+			if (FilePath.ends_with(".azMesh")) // Custom mesh file format
+			{
+
+			}
+			else if (FilePath.ends_with(".fbx"))
+			{
+				Asset::LoadedFBXFileInfo LoadedFBX;
+				const bool IsLoaded = Asset::LoadFBXFile(LoadedFBX, FilePath);
+				if (IsLoaded)
+				{
+					ID3D12Device* Device = nullptr;
+					CmdList->GetDevice(IID_PPV_ARGS(&Device));
+					for (int MeshIndex = 0; MeshIndex < LoadedFBX.Meshes.size(); MeshIndex++)
+					{
+						const Asset::LoadedFBXFileInfo::MeshInfo& Mesh = LoadedFBX.Meshes[MeshIndex];
+						Store(Mesh.Name, Asset::Mesh(Device, CmdList, Mesh, m_ResourceRecycler));
+					}
+				}
+			}
 		}
 
 		// TODO - Implement move and copy constructors / operators

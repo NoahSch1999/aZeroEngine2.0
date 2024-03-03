@@ -3,7 +3,7 @@
 #include "../D3D12Wrappers/Descriptors/Descriptor.h"
 #include "../Singleton/Singleton.h"
 #include "Commands/CommandQueue.h"
-#include "Resources/ResourceFreeFunctions.h"
+#include "Resources/GPUResource.h"
 
 namespace aZero
 {
@@ -39,7 +39,7 @@ namespace aZero
 			// NOTE - Critical to flush the GPU commands using a CPU side wait before the SwapChain gets destroyed!
 			~SwapChain();
 
-			void ResolveRenderSurface(ID3D12GraphicsCommandList* cmdList, int backBufferIndex, D3D12::Resource::Texture2D& renderSource);
+			void ResolveRenderSurface(ID3D12GraphicsCommandList* cmdList, int backBufferIndex, D3D12::GPUResource& renderSource);
 
 			void Present();
 

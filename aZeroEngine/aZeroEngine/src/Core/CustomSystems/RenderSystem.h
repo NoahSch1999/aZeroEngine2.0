@@ -6,8 +6,12 @@
 #include "../D3D12Wrappers/Pipeline/Graphics/GraphicsPass.h"
 #include "../D3D12Wrappers/Descriptors/DescriptorHeap.h"
 #include "../D3D12Wrappers/Commands/CommandQueue.h"
-#include "../D3D12Wrappers/Resources/ResourceFreeFunctions.h"
+#include "../D3D12Wrappers/Resources/GPUResource.h"
 #include "../AssetTypes/MeshAsset.h"
+#include "../Caches/ShaderCache.h"
+#include "../Caches/MeshCache.h"
+#include "../Caches/TextureCache.h"
+#include "../Scene.h"
 
 namespace aZero
 {
@@ -16,117 +20,196 @@ namespace aZero
 		class RenderSystem : public System, public Helpers::NoneCopyable
 		{
 		private:
-			void CreateSamplers()
+			class GBuffers
 			{
-				D3D12_SAMPLER_DESC samplerDesc;
-				samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
-				samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-				samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-				samplerDesc.MaxAnisotropy = 16;
-				samplerDesc.MipLODBias = 0;
-				samplerDesc.MinLOD = 0;
-				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+			public:
+				enum GBUFFERINDEX{ BASECOLOR, WORLDNORMAL, WORLDPOSITION, MAXVALUE };
 
-				m_anisotropic16Sampler = m_descriptorManager->GetSamplerHeap().GetDescriptor();
-				m_device->CreateSampler(&samplerDesc, m_anisotropic16Sampler.GetCPUHandle());
-
-				samplerDesc.MaxAnisotropy = 8;
-				m_anisotropic8Sampler = m_descriptorManager->GetSamplerHeap().GetDescriptor();
-				m_device->CreateSampler(&samplerDesc, m_anisotropic8Sampler.GetCPUHandle());
-
-				samplerDesc.MaxAnisotropy = 4;
-				m_anisotropic4Sampler = m_descriptorManager->GetSamplerHeap().GetDescriptor();
-				m_device->CreateSampler(&samplerDesc, m_anisotropic4Sampler.GetCPUHandle());
-
-				samplerDesc.MaxAnisotropy = 0;
-				samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-				m_linearSampler = m_descriptorManager->GetSamplerHeap().GetDescriptor();
-				m_device->CreateSampler(&samplerDesc, m_linearSampler.GetCPUHandle());
-
-				samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-				m_pointSampler = m_descriptorManager->GetSamplerHeap().GetDescriptor();
-				m_device->CreateSampler(&samplerDesc, m_pointSampler.GetCPUHandle());
-			}
-
-			void ExecuteGeometryPass(const std::vector<Entity>& entitiesToRender)
-			{
-				m_directContext.StartRecording();
-				ID3D12GraphicsCommandList* const cmdList = m_directContext.GetCommandList();
-				m_GeometryPass.BeginPass(cmdList, m_descriptorManager->GetResourceHeap().GetDescriptorHeap(), m_descriptorManager->GetSamplerHeap().GetDescriptorHeap());
-
-				D3D12::Resource::TransitionResource(cmdList, m_renderTargetResources[m_frameIndex], D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-				cmdList->ClearRenderTargetView(m_renderTargetDescriptors[m_frameIndex].GetCPUHandle(), m_rtClearValue.Color, 0, nullptr);
-				cmdList->ClearDepthStencilView(m_depthStencilDescriptor.GetCPUHandle(), D3D12_CLEAR_FLAG_DEPTH, 0, 0, 0, nullptr);
-
-				m_GeometryPass.SetOutputTargets(cmdList, { m_renderTargetDescriptors[m_frameIndex].GetCPUHandle() }, m_depthStencilDescriptor.GetCPUHandle());
-
-				// Set pass params
-				DXM::Matrix tempWorld = /*DXM::Matrix::CreateScale(2.0) **/ DXM::Matrix::CreateTranslation(0, 0, 10.f);
-				m_GeometryPass.SetShaderRootConstant<D3D12::ShaderTypes::VertexShader>(cmdList, "World", &tempWorld);
-				DXM::Matrix tempCamera = DXM::Matrix::CreatePerspectiveFieldOfView(3.14 / 2.f, 800.0 / 600.0, 0.1f, 100.f);
-				m_GeometryPass.SetShaderRootConstant<D3D12::ShaderTypes::VertexShader>(cmdList, "Camera", &tempCamera);
-
-				struct TempMaterialData
+			private:
+				struct GBuffer
 				{
-					int albedo = -1;
-					int normal = -1;
+					D3D12::GPUResource RenderTexture;
+					D3D12_CLEAR_VALUE ClearValue;
 				};
-				TempMaterialData mat;
+				std::vector<std::vector<GBuffer>> m_GBuffers;
 
-				m_GeometryPass.SetShaderRootConstant<D3D12::ShaderTypes::PixelShader>(cmdList, "MaterialConstants", &mat);
-				int samplerIndex = m_anisotropic16Sampler.GetHeapIndex();
-				m_GeometryPass.SetShaderRootConstant<D3D12::ShaderTypes::PixelShader>(cmdList, "SamplerSpecs", &samplerIndex);
-
-				m_GeometryPass.DrawInstanced(cmdList, testMesh.GetNumVertices(), 1, 0, 0);
-
-				// Render each entity
-				for (const Entity& entity : entitiesToRender)
+				void CreateTextures(ID3D12Device* const device, 
+					D3D12::ResourceRecycler& resourceRecycler, 
+					const DXM::Vector2& renderSurfaceDimensions, 
+					std::vector<GBuffer>& gBuffers)
 				{
-					// Set per-draw params
-					
-					//m_GeometryPass.SetVertexBuffer();
+					// BASE COLOR
+					gBuffers[BASECOLOR].ClearValue.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+					gBuffers[BASECOLOR].ClearValue.Color[0] = 0.5f;
+					gBuffers[BASECOLOR].ClearValue.Color[1] = 0.5f;
+					gBuffers[BASECOLOR].ClearValue.Color[2] = 0.5f;
+					gBuffers[BASECOLOR].ClearValue.Color[3] = 0.0f;
 
-					m_GeometryPass.DrawInstanced(cmdList, 0, 0, 0, 0);
+					D3D12::TextureResourceDesc GBufferDesc;
+					GBufferDesc.ClearValue = &gBuffers[BASECOLOR].ClearValue;
+					GBufferDesc.Dimensions = renderSurfaceDimensions;
+					GBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					GBufferDesc.UsageFlags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+					GBufferDesc.MSSampleCount = 1;
+					GBufferDesc.NumMipLevels = 1;
+					GBufferDesc.InitialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+					gBuffers[BASECOLOR].RenderTexture =
+						std::move(D3D12::GPUResource(
+							device,
+							resourceRecycler,
+							GBufferDesc));
+					//
+
+					// WORLD NORMAL
+					gBuffers[WORLDNORMAL].ClearValue.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_SNORM;
+					gBuffers[WORLDNORMAL].ClearValue.Color[0] = 0.0f;
+					gBuffers[WORLDNORMAL].ClearValue.Color[1] = 0.0f;
+					gBuffers[WORLDNORMAL].ClearValue.Color[2] = 0.0f;
+					gBuffers[WORLDNORMAL].ClearValue.Color[3] = 0.0f;
+
+					GBufferDesc.ClearValue = &gBuffers[WORLDNORMAL].ClearValue;
+					GBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
+					gBuffers[WORLDNORMAL].RenderTexture =
+						std::move(D3D12::GPUResource(
+							device,
+							resourceRecycler,
+							GBufferDesc
+						));
+					//
+
+					// WORLD POSITION
+					gBuffers[WORLDPOSITION].ClearValue.Format = DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT;
+					gBuffers[WORLDPOSITION].ClearValue.Color[0] = 0.0f;
+					gBuffers[WORLDPOSITION].ClearValue.Color[1] = 0.0f;
+					gBuffers[WORLDPOSITION].ClearValue.Color[2] = 0.0f;
+					gBuffers[WORLDPOSITION].ClearValue.Color[3] = 0.0f;
+
+					GBufferDesc.ClearValue = &gBuffers[WORLDPOSITION].ClearValue;
+					GBufferDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+					gBuffers[WORLDPOSITION].RenderTexture =
+						std::move(D3D12::GPUResource(
+							device,
+							resourceRecycler,
+							GBufferDesc));
+					//
 				}
 
-				m_directContext.StopRecording();
-				m_directQueue->ExecuteContext({ m_directContext });
-			}
+				void CreateDescriptors(ID3D12Device* const device, 
+					D3D12::DescriptorManager& descriptorManager, 
+					std::vector<GBuffer>& gBuffers)
+				{
+					gBuffers[BASECOLOR].RenderTexture.CreateTextureRTV(descriptorManager, 0);
+					gBuffers[WORLDNORMAL].RenderTexture.CreateTextureRTV(descriptorManager);
+					gBuffers[WORLDPOSITION].RenderTexture.CreateTextureRTV(descriptorManager);
 
-			void ExecuteLightPass()
-			{
+					gBuffers[BASECOLOR].RenderTexture.CreateTextureSRV(descriptorManager);
+					gBuffers[WORLDNORMAL].RenderTexture.CreateTextureSRV(descriptorManager);
+					gBuffers[WORLDPOSITION].RenderTexture.CreateTextureSRV(descriptorManager);
 
-			}
 
-			// TODO - Implement culling techniques used here (frustrum, octree etc...)
-			void CalculateVisibility(std::vector<Entity>& visibleEntities, const std::vector<Entity>& allEntities)
-			{
-				visibleEntities = allEntities;
-			}
+					/*D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+					rtvDesc.Texture2D.MipSlice = 0;
+					rtvDesc.Texture2D.PlaneSlice = 0;
+					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE2D;
 
-			void Render(const std::vector<Entity>& entitiesToRender)
-			{
-				ExecuteGeometryPass(entitiesToRender);
-				ExecuteLightPass();
-			}
+					D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+					srvDesc.Texture2D.MostDetailedMip = 0;
+					srvDesc.Texture2D.MipLevels = 1;
+					srvDesc.Texture2D.PlaneSlice = 0;
+					srvDesc.ViewDimension = D3D12_SRV_DIMENSION::D3D12_SRV_DIMENSION_TEXTURE2D;
+					srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;*/
 
-		public:
+					// BASE COLOR
+					/*rtvDesc.Format = gBuffers[BASECOLOR].ClearValue.Format;
+					gBuffers[BASECOLOR].RtvDescriptor = descriptorManager.GetRtvHeap().GetDescriptor();
+					device->CreateRenderTargetView(
+						gBuffers[BASECOLOR].RenderTexture.GetResource(),
+						&rtvDesc, 
+						gBuffers[BASECOLOR].RtvDescriptor.GetCPUHandle());
+
+					srvDesc.Format = gBuffers[BASECOLOR].ClearValue.Format;
+					gBuffers[BASECOLOR].SrvDescriptor = descriptorManager.GetResourceHeap().GetDescriptor();
+					device->CreateShaderResourceView(
+						gBuffers[BASECOLOR].RenderTexture.GetResource(),
+						&srvDesc,
+						gBuffers[BASECOLOR].SrvDescriptor.GetCPUHandle()
+					);*/
+					//
+
+					//// WORLD NORMAL
+					//rtvDesc.Format = gBuffers[WORLDNORMAL].ClearValue.Format;
+					//gBuffers[WORLDNORMAL].RtvDescriptor = descriptorManager.GetRtvHeap().GetDescriptor();
+					//device->CreateRenderTargetView(
+					//	gBuffers[WORLDNORMAL].RenderTexture.GetResource(),
+					//	&rtvDesc,
+					//	gBuffers[WORLDNORMAL].RtvDescriptor.GetCPUHandle());
+
+					//srvDesc.Format = gBuffers[WORLDNORMAL].ClearValue.Format;
+					//gBuffers[WORLDNORMAL].SrvDescriptor = descriptorManager.GetResourceHeap().GetDescriptor();
+					//device->CreateShaderResourceView(
+					//	gBuffers[WORLDNORMAL].RenderTexture.GetResource(),
+					//	&srvDesc,
+					//	gBuffers[WORLDNORMAL].SrvDescriptor.GetCPUHandle()
+					//);
+					//
+
+					// WORLD POSITION
+					/*rtvDesc.Format = gBuffers[WORLDPOSITION].ClearValue.Format;
+					gBuffers[WORLDPOSITION].RtvDescriptor = descriptorManager.GetRtvHeap().GetDescriptor();
+					device->CreateRenderTargetView(
+						gBuffers[WORLDPOSITION].RenderTexture.GetResource(),
+						&rtvDesc,
+						gBuffers[WORLDPOSITION].RtvDescriptor.GetCPUHandle());
+
+					srvDesc.Format = gBuffers[WORLDPOSITION].ClearValue.Format;
+					gBuffers[WORLDPOSITION].SrvDescriptor = descriptorManager.GetResourceHeap().GetDescriptor();
+					device->CreateShaderResourceView(
+						gBuffers[WORLDPOSITION].RenderTexture.GetResource(),
+						&srvDesc,
+						gBuffers[WORLDPOSITION].SrvDescriptor.GetCPUHandle()
+					);*/
+					//
+
+				}
+
+			public:
+				GBuffers() = default;
+
+				GBuffers(ID3D12Device* const device, 
+					D3D12::ResourceRecycler& resourceRecycler, 
+					D3D12::DescriptorManager& descriptorManager,
+					const DXM::Vector2& renderSurfaceDimensions, 
+					int numFramesBeforeSync)
+				{
+					m_GBuffers.reserve(numFramesBeforeSync);
+					for (int i = 0; i < numFramesBeforeSync; i++)
+					{
+						std::vector<GBuffer> frameGBuffers;
+						
+						frameGBuffers.resize(GBUFFERINDEX::MAXVALUE);
+						CreateTextures(device, resourceRecycler, renderSurfaceDimensions, frameGBuffers);
+						CreateDescriptors(device, descriptorManager, frameGBuffers);
+
+						m_GBuffers.emplace_back(std::move(frameGBuffers));
+					}
+				}
+
+				GBuffer& GetGBuffer(GBUFFERINDEX gBufferType, int frameIndex)
+				{
+					return m_GBuffers.at(frameIndex).at(gBufferType);
+				}
+			};
+
 			// TODO - Replace, only temp
-			Camera* m_activeCamera = nullptr;
-			D3D12::GraphicsPass m_GeometryPass;
 			ID3D12Device* m_device = nullptr;
 			D3D12::CommandQueue* m_directQueue = nullptr;
 			D3D12::CommandContext m_directContext;
-			
-			D3D12::Resource::Texture2D m_renderTargetResources[3];
-			D3D12::Descriptor m_renderTargetDescriptors[3];
-			D3D12::Resource::Texture2D m_depthStencil;
-			D3D12::Descriptor m_depthStencilDescriptor;
+			ShaderCache* m_shaderCache;
+			MeshCache* m_MeshCache = nullptr;
+			TextureCache* m_TextureCache = nullptr;
 
-			D3D12_CLEAR_VALUE m_rtClearValue;
 			D3D12::ResourceRecycler* m_resourceRecycler = nullptr;
 			int m_frameIndex = 0;
 
@@ -138,117 +221,75 @@ namespace aZero
 			D3D12::Descriptor m_linearSampler;
 			D3D12::Descriptor m_pointSampler;
 
-			Asset::Mesh testMesh;
+			// Deferred Rendering
+			GBuffers m_GBuffers;
+			D3D12::GPUResource m_geometryPassDSV;
+			D3D12::Descriptor m_geometryPassDSVDescriptor;
+			D3D12_CLEAR_VALUE m_geometryPassDSVClearValue;
+
+			D3D12::GraphicsPass m_DeferredGeometryPass;
+			D3D12::GraphicsPass m_DeferredLightPass;
+			D3D12_VERTEX_BUFFER_VIEW m_lightPassVBV;
+			D3D12::GPUResource m_lightPassQuadBuffer;
+			std::vector<D3D12::GPUResource> m_LightPassRenderTextures;
+			std::vector<D3D12::Descriptor> m_LightPassRenderTextureDescriptors;
 			//
 
-			RenderSystem(ComponentManager& componentManager, 
-				/*temp...*/ID3D12Device* const device, D3D12::Shader* vShader, D3D12::Shader* pShader,
+			DXM::Vector2 m_renderResolution;
+
+		private:
+
+			void CreateSamplers();
+
+			void CreateDeferredGeometryPass();
+			void CreateDeferredLightPass();
+
+			void ExecuteDeferredGeometryPass(const Camera& camera, const std::vector<Entity>& entitiesToRender);
+
+			void ExecuteDeferredLightPass(D3D12::GPUResource& RenderTarget, const D3D12::Descriptor& RenderTargetDescriptor);
+
+			// TODO - Implement culling techniques used here (frustrum, octree etc...)
+			void CalculateVisibility(const Camera& camera, std::vector<Entity>& visibleEntities, const std::vector<Entity>& allEntities);
+
+			void Render(const Camera& camera, const std::vector<Entity>& entitiesToRender);
+
+			
+			//
+		public:
+
+			RenderSystem(ComponentManager& componentManager,
+				/*temp...*/ ShaderCache* const shaderCache, MeshCache* MeshCache, TextureCache* TextureCache,
 				D3D12::DescriptorManager* descriptorManager,
-				D3D12::CommandQueue* commandQueue, D3D12::ResourceRecycler* resourceRecycler, const DXM::Vector2& renderSurfaceDimensions)
-				:System(componentManager), 
-				/*temp...*/m_device(device), m_descriptorManager(descriptorManager), m_directQueue(commandQueue), m_resourceRecycler(resourceRecycler)
+				D3D12::CommandQueue* commandQueue, D3D12::ResourceRecycler* resourceRecycler, const DXM::Vector2& renderResolution);
+				
+
+			// TODO - Make it grab the final render output which should (?) be local to the renderer/rendersystem
+			D3D12::GPUResource& GetFrameRendertarget()
 			{
-				// Signature Setup
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::Transform>());
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::Mesh>());
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::Material>());
-
-				// Setup test pass
-				D3D12::GraphicsPass::PassDescription desc;
-				desc.TopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				desc.BlendDesc = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-				desc.DepthStencilDesc.Description = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-				desc.DepthStencilDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT;
-				desc.RasterDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-				desc.SampleDesc.Count = 1;
-				desc.SampleDesc.Quality = 0;
-				desc.VertexShader = *vShader;
-				desc.PixelShader = *pShader;
-
-				// NOTE - Should be generated automatically with the shader compilation/reflection
-				InputLayout layout;
-				layout.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-				layout.AddElement("UV", DXGI_FORMAT_R32G32_FLOAT);
-				layout.AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-				layout.AddElement("TANGENT", DXGI_FORMAT_R32G32B32_FLOAT);
-				desc.InputLayoutDesc.pInputElementDescs = layout.GetDescription();
-				desc.InputLayoutDesc.NumElements = layout.GetNumElements();
-
-				m_GeometryPass = std::move(D3D12::GraphicsPass(m_device, desc));
-
-				m_directContext = std::move(D3D12::CommandContext(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT));
-
-				m_rtClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				m_rtClearValue.DepthStencil.Depth = 0;
-				m_rtClearValue.DepthStencil.Stencil = 0;
-				m_depthStencil = std::move(D3D12::Resource::Texture2D(*m_resourceRecycler, m_device, DXGI_FORMAT::DXGI_FORMAT_D24_UNORM_S8_UINT,
-					D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, renderSurfaceDimensions, 1, 1, &m_rtClearValue, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-				m_depthStencilDescriptor = m_descriptorManager->GetDsvHeap().GetDescriptor();
-				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-				dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				dsvDesc.Texture2D.MipSlice = 0;
-				dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-				m_device->CreateDepthStencilView(m_depthStencil.GetResource(), &dsvDesc, m_depthStencilDescriptor.GetCPUHandle());
-
-				m_rtClearValue.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-				m_rtClearValue.Color[0] = 0.5;
-				m_rtClearValue.Color[1] = 0.5;
-				m_rtClearValue.Color[2] = 0.5;
-				m_rtClearValue.Color[3] = 0;
-
-				D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-				rtvDesc.Texture2D.MipSlice = 0;
-				rtvDesc.Texture2D.PlaneSlice = 0;
-				rtvDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE2D;
-				for (int i = 0; i < 3; i++)
-				{
-					m_renderTargetResources[i] = std::move(D3D12::Resource::Texture2D(*m_resourceRecycler, m_device, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM,
-						D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, renderSurfaceDimensions, 1, 1, &m_rtClearValue));
-
-					m_renderTargetDescriptors[i] = m_descriptorManager->GetRtvHeap().GetDescriptor();
-					m_device->CreateRenderTargetView(m_renderTargetResources[i].GetResource(), &rtvDesc, m_renderTargetDescriptors[i].GetCPUHandle());
-				}
-
-				// Temp
-				HelperFunctions::FBXFileInfo fbxInfo;
-				HelperFunctions::LoadFBXFile(fbxInfo, "C:/Programming/aZeroEngine2.0/aZeroEngine/Assets/Meshes/cube");
-				testMesh = std::move(Asset::Mesh(device, fbxInfo.Meshes[0].Vertices.size(), sizeof(HelperFunctions::BasicVertex), *resourceRecycler));;
-
-				m_directContext.StartRecording();
-				testMesh.Upload(m_directContext.GetCommandList(), fbxInfo.Meshes[0].Vertices.data(), fbxInfo.Meshes[0].Vertices.size(), sizeof(HelperFunctions::BasicVertex), 16, *resourceRecycler);
-				m_directContext.StopRecording();
-				m_directQueue->ExecuteContext({ m_directContext });
-				m_directQueue->FlushCommands();
-				// Temp
-
-				CreateSamplers();
-			}
-
-			D3D12::Resource::Texture2D& GetFrameRendertarget()
-			{
-				return m_renderTargetResources[m_frameIndex];
+				return m_LightPassRenderTextures[m_frameIndex];
 			}
 
 			void BeginFrame(int frameIndex)
 			{
 				m_frameIndex = frameIndex;
 
-				if (m_frameIndex % 3 == 0)
+				if (m_frameIndex % NUM_FRAMEBUFFERS == 0)
 				{
 					m_directContext.FreeCommandBuffer();
 				}
 			}
 
+			void RenderFromView(const Camera& camera)
+			{
+				std::vector<Entity> entitiesToRender;
+				CalculateVisibility(camera, entitiesToRender, m_entities.GetConstReferenceInternal());
+				Render(camera, entitiesToRender);
+			}
+
 			virtual void Update() override
 			{
-				if (!m_activeCamera)
-				{
-					std::vector<Entity> entitiesToRender;
-					CalculateVisibility(entitiesToRender, m_entities.GetConstReferenceInternal());
-					Render(entitiesToRender);
-				}
+				// ...
+				throw;
 			}
 
 			virtual void OnRegister() override

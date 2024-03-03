@@ -34,66 +34,31 @@ namespace aZero
 		{
 
 		}
-		
-		void SetProjectionType(const Camera::PROJECTIONTYPE projectionType)
-		{
-			m_projectionType = projectionType;
-		}
-
-		void SetFov(const float fov)
-		{
-			m_fov = fov;
-		}
-
-		void SetPlanes(const float nearPlane, const float farPlane)
-		{
-			m_nearPlane = nearPlane;
-			m_farPlane = farPlane;
-		}
-
-		void SetPosition(const DXM::Vector3& position) 
-		{ 
-			m_position = position; 
-		}
 
 		void MoveRelative(const DXM::Vector3& offset)
 		{
-			m_position += offset;
-		}
-
-		void SetRotation(const float pitch, const float yaw, const float roll)
-		{
-			m_rotation = DXM::Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);
-		}
-
-		void RotateRelative(const float pitch, const float yaw, const float roll)
-		{
-			m_rotation = m_rotation * DXM::Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);
+			m_position += DXM::Vector3::Transform(offset, m_rotation);
 		}
 
 		void LookAt(const DXM::Vector3& targetPosition)
 		{
 			DXM::Vector3 targetDirection = targetPosition - m_position;
 
-			if (targetDirection.Length() > 0.0001f)
+			if (targetDirection.Length() < 0.0001f)
 			{
-				return;
+				throw;
 			}
 
 			targetDirection.Normalize();
 
-			DXM::Vector3 currentForward(DXM::Vector3::Transform({ 0.f, 0.f, 1.f }, m_rotation));
-			currentForward.Normalize();
-
-			float rotationAngle = acos(currentForward.Dot(targetDirection));
-
-			DXM::Vector3 rotationAxis = currentForward.Cross(targetDirection);
-			rotationAxis.Normalize();
-
-			m_rotation = DXM::Matrix::CreateFromAxisAngle(rotationAxis, rotationAngle);
+			DXM::Vector3 rotationVector(targetDirection.Cross({ 0.f, 1.f, 0.f }));
+			DXM::Matrix upVectorRotation = DXM::Matrix::CreateFromAxisAngle(rotationVector, 90);
+			DXM::Vector3 upVector(DXM::Vector3::Transform({ 0.f, 0.f, 1.f }, upVectorRotation));
+			upVector.Normalize();
+			m_rotation = DXM::Matrix::CreateLookAt(m_position, targetPosition, upVector);
 		}
 
-		DXM::Matrix GetTransform() const
+		DXM::Matrix GetViewMatrix() const
 		{
 			DXM::Matrix finalMatrix = m_rotation;
 			finalMatrix.m[3][0] = m_position.x;
@@ -111,6 +76,11 @@ namespace aZero
 			}
 
 			return DXM::Matrix::CreatePerspectiveFieldOfView(m_fov, m_viewDimensions.x / m_viewDimensions.y, m_nearPlane, m_farPlane);
+		}
+
+		DXM::Matrix GetViewProjectionMatrix() const
+		{
+			return GetViewMatrix() * GetProjectionMatrix();
 		}
 	};
 }

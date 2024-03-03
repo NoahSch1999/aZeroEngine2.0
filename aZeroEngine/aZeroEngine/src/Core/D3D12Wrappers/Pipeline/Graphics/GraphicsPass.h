@@ -1,7 +1,7 @@
 #pragma once
 #include "../Shader.h"
 #include "../InputLayout.h"
-#include "../../Resources/GPUBuffer.h"
+#include "../../Resources/GPUResource.h"
 
 namespace aZero
 {
@@ -130,6 +130,7 @@ namespace aZero
 				psoDesc.BlendState = m_description.BlendDesc;
 				psoDesc.InputLayout = m_description.InputLayoutDesc;
 				psoDesc.PrimitiveTopologyType = m_description.TopologyType;
+				psoDesc.SampleMask = UINT_MAX;
 
 				psoDesc.NumRenderTargets = m_description.PixelShader.GetRenderTargetFormats().size();
 				for (int i = 0; i < m_description.PixelShader.GetRenderTargetFormats().size(); i++)
@@ -185,18 +186,17 @@ namespace aZero
 
 			void BeginPass(ID3D12GraphicsCommandList* const commandList, ID3D12DescriptorHeap* ResourceHeap, ID3D12DescriptorHeap* SamplerHeap)
 			{
+				ID3D12DescriptorHeap* heaps[2] = { ResourceHeap, SamplerHeap };
+				commandList->SetDescriptorHeaps(2, heaps);
 
 				commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 				commandList->SetPipelineState(m_pso.Get());
-
-				ID3D12DescriptorHeap* heaps[2] = { ResourceHeap, SamplerHeap };
-				commandList->SetDescriptorHeaps(2, heaps);
 
 				switch (m_description.TopologyType)
 				{
 				case D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE:
 				{
-					commandList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					commandList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 					break;
 				}
 				case D3D12_PRIMITIVE_TOPOLOGY_TYPE::D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE:
@@ -266,9 +266,9 @@ namespace aZero
 				}
 			}
 
-			void SetOutputTargets(ID3D12GraphicsCommandList* const commandList, const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& renderTargets, D3D12_CPU_DESCRIPTOR_HANDLE depthStencil)
+			void SetOutputTargets(ID3D12GraphicsCommandList* const commandList, const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& renderTargets, const D3D12_CPU_DESCRIPTOR_HANDLE* const depthStencil)
 			{
-				commandList->OMSetRenderTargets(renderTargets.size(), renderTargets.data(), 0, &depthStencil);
+				commandList->OMSetRenderTargets(renderTargets.size(), renderTargets.data(), 0, depthStencil);
 			}
 		
 			void SetVertexBuffer(ID3D12GraphicsCommandList* const commandList, const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView, int startSlot, int numViews)

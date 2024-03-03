@@ -48,5 +48,7 @@ namespace aZero
 		}
 
 		ECS::Entity& GetEntity(const std::string& name) { return m_entities.GetElementRef(name); }
+
+		std::vector<ECS::Entity>& GetEntities() { return m_entities.GetReferenceInternal(); }
 	};
 }

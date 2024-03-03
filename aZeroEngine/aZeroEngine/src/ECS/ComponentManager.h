@@ -8,10 +8,6 @@ namespace aZero
 {
 	namespace ECS
 	{
-		// TODO - Remove macros
-		#define COMPONENTS_STARTAMOUNT 100
-		#define COMPONENTS_PERINCREMENT 100
-
 		class ComponentManager;
 
 		// TODO - Try to remove this base class
@@ -31,7 +27,7 @@ namespace aZero
 		class ComponentArray : public ComponentArrayBase
 		{
 		private:
-			DataStructures::PackedLookupArray<int, T> m_components = { COMPONENTS_STARTAMOUNT, COMPONENTS_PERINCREMENT };
+			DataStructures::PackedLookupArray<int, T> m_components;
 
 		public:
 			ComponentArray() = default;

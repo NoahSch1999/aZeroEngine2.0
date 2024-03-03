@@ -1,12 +1,15 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+
 #include "../../D3D12Core.h"
 
 namespace aZero
 {
 	namespace D3D12
 	{
+		Microsoft::WRL::ComPtr<ID3DBlob> LoadBlobFromFile(const std::string& FilePath);
+
 		struct ShaderTypes
 		{
 			class VertexShader
@@ -41,8 +44,6 @@ namespace aZero
 		class Shader
 		{
 		public:
-			enum class TYPE { VS, PS, COMPUTE, MAX_INVALID };
-
 			struct ShaderParameter
 			{
 				std::string Name = "INVALID";
@@ -81,7 +82,6 @@ namespace aZero
 
 		private:
 
-			TYPE m_shaderType = TYPE::MAX_INVALID;
 			std::unordered_map<std::string, RootConstant> m_rootConstants;
 			std::unordered_map<std::string, RootDescriptor> m_rootDescriptor;
 
@@ -91,9 +91,12 @@ namespace aZero
 
 			Microsoft::WRL::ComPtr<ID3DBlob> m_compiledShader = nullptr;
 
-			void CompileFromFile(const std::string& srcFilePath)
+			void CompileFromFile(const std::string& FilePath)
 			{
 				// TODO - Impl
+
+				const std::wstring FilePathWStr(FilePath.begin(), FilePath.end());
+
 
 				// Fill param maps with data
 			}
@@ -103,12 +106,12 @@ namespace aZero
 			Shader() = default;
 
 			// TODO - Remove type input and replace with loaded shaders type automatically
-			Shader(Shader::TYPE type, const std::string& srcFilePath)
+			Shader(const std::string& srcFilePath)
 			{
-				Initialize(type, srcFilePath);
+				Initialize(srcFilePath);
 			}
 
-			void Initialize(Shader::TYPE type, const std::string& srcFilePath);
+			void Initialize(const std::string& srcFilePath);
 
 			ID3DBlob* const GetShaderBlob() const { return m_compiledShader.Get(); }
 

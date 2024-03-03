@@ -10,6 +10,7 @@
 #include <DirectXTK12/Inc/SimpleMath.h>
 
 namespace DXM = DirectX::SimpleMath;
+#define NUM_FRAMEBUFFERS 3
 
 #ifdef _DEBUG
 #include <dxgidebug.h>

@@ -23,21 +23,77 @@ namespace aZero
 			@param startSize Number of elements to pre-allocate for.
 			@param perIncrementSize How many empty elements that should be allocated for whenever the internal std::vector is full.
 			*/
-			PackedLookupArray(std::size_t perIncrementSize = 1)
+			PackedLookupArray(std::size_t startSize = 0, std::size_t perIncrementSize = 1)
 				:m_perIncrementSize(perIncrementSize)
 			{
-
+				m_elements.reserve(startSize);
 			}
 
 			~PackedLookupArray() = default;
 
-			PackedLookupArray(const PackedLookupArray& other) = delete;
+			PackedLookupArray(const PackedLookupArray& other)
+			{
+				m_elements.assign(other.m_elements.begin(), other.m_elements.end());
 
-			PackedLookupArray(PackedLookupArray&& other) = delete;
+				for (const auto& [key, index] : other.m_keyToIndex)
+				{
+					m_keyToIndex.emplace(std::make_pair(key, index));
+				}
 
-			PackedLookupArray operator=(const PackedLookupArray& other) = delete;
+				for (const auto& [index, key] : other.m_indexToKey)
+				{
+					m_indexToKey.emplace(std::make_pair(index, key));
+				}
 
-			PackedLookupArray operator=(PackedLookupArray&& other) = delete;
+				m_numElements = other.m_numElements;
+				m_perIncrementSize = other.m_perIncrementSize;
+			}
+
+			PackedLookupArray(PackedLookupArray&& other)
+			{
+				m_elements = std::move(other.m_elements);
+				m_keyToIndex = std::move(other.m_keyToIndex);
+				m_indexToKey = std::move(other.m_indexToKey);
+				m_numElements = other.m_numElements;
+				m_perIncrementSize = other.m_perIncrementSize;
+			}
+
+			PackedLookupArray operator=(const PackedLookupArray& other)
+			{
+				if (this != &other)
+				{
+					m_elements.assign(other.m_elements.begin(), other.m_elements.end());
+
+					for (const auto& [key, index] : other.m_keyToIndex)
+					{
+						m_keyToIndex.emplace(std::make_pair(key, index));
+					}
+
+					for (const auto& [index, key] : other.m_indexToKey)
+					{
+						m_indexToKey.emplace(std::make_pair(index, key));
+					}
+
+					m_numElements = other.m_numElements;
+					m_perIncrementSize = other.m_perIncrementSize;
+				}
+
+				return *this;
+			}
+
+			PackedLookupArray operator=(PackedLookupArray&& other)
+			{
+				if (this != &other)
+				{
+					m_elements = std::move(other.m_elements);
+					m_keyToIndex = std::move(other.m_keyToIndex);
+					m_indexToKey = std::move(other.m_indexToKey);
+					m_numElements = other.m_numElements;
+					m_perIncrementSize = other.m_perIncrementSize;
+				}
+
+				return *this;
+			}
 
 			/**Adds an element to the map with the specified key.
 			* Time complexity is O(1) on average except when the internal std::vector is full.

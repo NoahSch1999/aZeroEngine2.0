@@ -83,20 +83,24 @@ aZero::D3D12::SwapChain::~SwapChain()
 	}
 }
 
-void aZero::D3D12::SwapChain::ResolveRenderSurface(ID3D12GraphicsCommandList* cmdList, int backBufferIndex, D3D12::Resource::Texture2D& renderSource)
+void aZero::D3D12::SwapChain::ResolveRenderSurface(ID3D12GraphicsCommandList* cmdList, int backBufferIndex, D3D12::GPUResource& renderSource)
 {
 	if (backBufferIndex > m_backBuffers.size())
 	{
 		throw;
 	}
 
+	// NOTE - input texture should be same resolution as the backbuffer. So the renderer has to upscale/downscale it to match...
+
 	D3D12::SwapChain::BackBuffer& backBuffer = m_backBuffers[backBufferIndex];
 
-	D3D12::Resource::TransitionResource(cmdList, backBuffer.m_resource.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+	D3D12::GPUResource::TransitionState(cmdList, backBuffer.m_resource.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+	D3D12::GPUResource::TransitionState(cmdList, renderSource, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-	D3D12::Resource::CopyTextureToTexture(backBuffer.m_resource.Get(), renderSource, cmdList); // NOTE - Backbuffer auto-decays to COMMON/PRESENT
+	// NOTE - Copying causes the resources to go decay into D3D12_RESOURCE_STATE_COMMON once the GPU has executed the recorded command ???? OR NOT ????
+	cmdList->CopyResource(backBuffer.m_resource.Get(), renderSource.GetResource());
 
-	D3D12::Resource::TransitionResource(cmdList, backBuffer.m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+	D3D12::GPUResource::TransitionState(cmdList, backBuffer.m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
 }
 
 void aZero::D3D12::SwapChain::Present()

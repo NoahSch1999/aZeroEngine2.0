@@ -10,7 +10,15 @@ namespace aZero
 		// TODO - Change these all so that they can be compiled with in release mode but then removed. AKA move the #ifdef clause into the macro.
 		#define FATAL_LOG(msg) std::cout << "FATAL ERROR: " + msg + "\n";
 		#define WARNING_LOG(msg) std::cout << "WARNING: " + msg + "\n";
+
+
 	}
 }
 
+#endif
+
+#ifdef _DEBUG
+#define DEBUG_CHECK(statement) if(!statement) DebugBreak();
+#else 
+DEBUG_CHECK(statement)
 #endif

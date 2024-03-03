@@ -37,12 +37,12 @@ namespace aZero
 
 		// TODO - Change so it parses (add params etc), compiles and stores the shader
 		// TODO - Remove macro and TYPE spec
-		void CompileAndStore(const std::string& shaderSourceFileName, D3D12::Shader::TYPE type)
+		void CompileAndStore(const std::string& shaderSourceFileName)
 		{
 			if (m_shaders.count(shaderSourceFileName) == 0)
 			{
 				const std::string absolutePath(SHADER_OBJECT_DIRECTORY + shaderSourceFileName + ".cso"); // TODO - Change extension to .pso
-				D3D12::Shader newShader(type, absolutePath);
+				D3D12::Shader newShader(absolutePath);
 				m_shaders.emplace(shaderSourceFileName, std::move(newShader));
 			}
 		}

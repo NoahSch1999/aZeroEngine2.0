@@ -4,19 +4,36 @@
 
 namespace aZero
 {
-	template<typename AssetType>
+	// TODO - All assets shouldnt be returned directly. Instead the user should be provided with a handle.
+
+	/*
+	The assets are stored in a ...
+
+
+	All assets shouldnt be returned directly.
+	Instead the user should be provided with a handle.
+	A handle is a lightweight referencecounted key that can be used to get information about a cached asset. 
+	Having a reference counted handle also ensures that a cached asset cannot be deleted while referenced by something.
+	The cache should provide a function that removes all unreferenced assets.
+
+	Use examples:
+	Material asset has handles to texture assets for ex. normal and albedo textures 
+		NOTE! the material asset should also cache the descriptor indices for the textures to avoid lookup
+	A material component should have a handle to a material asset
+	A mesh sub-component should have a handle to a mesh asset
+	When saving ex. a material, the handle can be used to look into the texture asset cache to get info about the specific texture
+	
+
+	*/
+	template<typename KeyType, typename AssetType>
 	class AssetCacheBase
 	{
 	private:
-		DataStructures::PackedLookupArray<std::string, AssetType> m_assets;
-
-		virtual void ImplLoad(std::ifstream& inFile, AssetType& dstAsset) = 0;
-		virtual void ImplSave(std::ofstream& outFile, const AssetType& srcAsset) const = 0;
-		virtual void ImplRemove(const std::string& key) = 0;
+		DataStructures::PackedLookupArray<KeyType, AssetType> m_Assets;
 
 	public:
-		AssetCacheBase(std::size_t preAllocatedNumElements = 1, std::size_t numPerIncreaseInternal = 1)
-			:m_assets(preAllocatedNumElements, numPerIncreaseInternal)
+		AssetCacheBase(int NumPerIncreaseInternal = 1)
+			:m_Assets(NumPerIncreaseInternal)
 		{
 
 		}
@@ -27,41 +44,28 @@ namespace aZero
 		AssetCacheBase operator=(const AssetCacheBase&) = delete;
 		AssetCacheBase operator=(AssetCacheBase&&) = delete;
 
-		// TODO - Add version that takes in an already opened file
-		void Load(const std::string& key, const std::string& path)
+		AssetType& Get(const KeyType& Key)
 		{
-			std::ifstream file(path, std::ios::binary);
-
-			if (file.is_open())
-			{
-				AssetType asset;
-				ImplLoad(file, asset);
-
-				m_assets.Add(key, std::move(asset));
-			}
+			return m_Assets.GetElementRef(Key);
 		}
 
-		// TODO - Add version that takes in an already opened file
-		void Save(const std::string& key, const std::string& path) const
+		const AssetType& Get(const KeyType& Key) const
 		{
-			std::ofstream file(path, std::ios::binary | std::ios::trunc);
-			if (file.is_open())
-			{
-				const AssetType& asset(m_assets.GetElementConstRef(key));
-				ImplSave(file, asset);
-			}
+			return m_Assets.GetElementConstRef(Key);
 		}
 
-		void Remove(const std::string& key)
+		void Store(const KeyType& Key, AssetType&& asset)
 		{
-			ImplRemove(key);
+			DEBUG_CHECK(!m_Assets.Exists(Key));
+			m_Assets.Add(Key, std::forward<AssetType>(asset));
 		}
 
-		void Store(const std::string& key, AssetType&& asset)
+		void Remove(const KeyType& Key)
 		{
-			m_assets.Add(key, std::forward<AssetType>(asset));
+			DEBUG_CHECK(m_Assets.Exists(Key));
+			m_Assets.Remove(Key);
 		}
 
-		bool Exists(const std::string& key) const { return m_assets.Exists(key); }
+		bool Exists(const KeyType& Key) const { return m_Assets.Exists(Key); }
 	};
 }

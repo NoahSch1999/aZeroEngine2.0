@@ -28,9 +28,10 @@ struct VertexOut
 VertexOut main(VertexIn input)
 {
     VertexOut output;
-    output.worldPosition = mul(world, float4(input.position, 1.f)).xyz;
-    output.position = float4(output.worldPosition, 1.f);
-    output.position = mul(camera, float4(output.position));
+    
+    output.position = mul(world, float4(input.position, 1.f));
+    output.worldPosition = output.position.xyz;
+    output.position = mul(camera, output.position);
     
     output.uv = input.uv;
 
@@ -41,7 +42,6 @@ VertexOut main(VertexIn input)
     
     output.TBN = float3x3(tangent, bitangent, normal);
     output.normal = normal;
-
     
     return output;
 }

@@ -1,34 +1,28 @@
 #pragma once
-#include "AssetCacheBase.h"
+#include "TextureCache.h"
 #include "../AssetTypes/MaterialAsset.h"
 
 #define MATERIAL_ASSET_DIRECTORY ""
 
 namespace aZero
 {
-	class MaterialCache : public AssetCacheBase<Asset::Material>
+	class MaterialCache : public AssetCacheBase<std::string, Asset::Material>
 	{
 	private:
-		virtual void ImplLoad(std::ifstream& inFile, Asset::Material& dstAsset) override
-		{
-
-		}
-
-		virtual void ImplSave(std::ofstream& outFile, const Asset::Material& srcAsset) const override
-		{
-
-		}
-
-		virtual void ImplRemove(const std::string& key) override
-		{
-
-		}
+		TextureCache& m_TextureCache;
 
 	public:
-		MaterialCache()
-			:AssetCacheBase(10, 10)
+		MaterialCache(TextureCache& TextureCache)
+			:AssetCacheBase(10), m_TextureCache(TextureCache)
 		{
 
+		}
+		
+		void LoadFromFile(const std::string& FilePath, ID3D12GraphicsCommandList* CmdList)
+		{
+			// Loads material file
+			
+			// It loads textures if any neccessary texture isnt in the texture cache
 		}
 
 		// TODO - Implement move and copy constructors / operators
