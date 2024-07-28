@@ -8,7 +8,7 @@ void aZero::ECS::RenderSystem::CalculateVisibility(const Camera& camera, std::ve
 void aZero::ECS::RenderSystem::Render(const Camera& camera, const std::vector<Entity>& entitiesToRender)
 {
 	ExecuteDeferredGeometryPass(camera, entitiesToRender);
-	ExecuteDeferredLightPass(m_LightPassRenderTextures[m_frameIndex], m_LightPassRenderTextureDescriptors[m_frameIndex]);
+	ExecuteDeferredLightPass(m_LightPassRenderTextures[m_frameIndex], m_LightPassRenderTextures[m_frameIndex].GetDescriptorRTVDSV());
 }
 
 void aZero::ECS::RenderSystem::CreateSamplers()
@@ -99,10 +99,12 @@ void aZero::ECS::RenderSystem::CreateDeferredGeometryPass()
 	GeoDSVDesc.ClearValue = &m_geometryPassDSVClearValue;
 
 	m_geometryPassDSV = std::move(
-		D3D12::GPUResource(
+		D3D12::GPUResource_Deprecated(
 			m_device, 
 			*m_resourceRecycler, 
 			GeoDSVDesc));
+
+	AddAsRenderSurface(m_geometryPassDSV);
 
 	m_geometryPassDSVDescriptor = m_descriptorManager->GetDsvHeap().GetDescriptor();
 
@@ -165,15 +167,15 @@ void aZero::ECS::RenderSystem::CreateDeferredLightPass()
 	ScreenQuadVBDesc.AccessType = D3D12::RESOURCE_ACCESS_TYPE::GPU_ONLY;
 	ScreenQuadVBDesc.NumBytes = ARRAYSIZE(QuadVertices) * sizeof(LocalData);
 	m_lightPassQuadBuffer = std::move(
-		D3D12::GPUResource(
+		D3D12::GPUResource_Deprecated(
 			m_device,
 			*m_resourceRecycler,
 			ScreenQuadVBDesc)
 	);
 
 	ScreenQuadVBDesc.AccessType = D3D12::RESOURCE_ACCESS_TYPE::CPU_WRITE;
-	D3D12::GPUResource tempUpload = std::move(
-		D3D12::GPUResource(
+	D3D12::GPUResource_Deprecated tempUpload = std::move(
+		D3D12::GPUResource_Deprecated(
 			m_device,
 			*m_resourceRecycler,
 			ScreenQuadVBDesc)
@@ -181,7 +183,7 @@ void aZero::ECS::RenderSystem::CreateDeferredLightPass()
 
 	m_directContext.StartRecording();
 
-	D3D12::GPUResource::CopyBufferToBuffer(
+	D3D12::GPUResource_Deprecated::CopyBufferToBuffer(
 		m_directContext.GetCommandList(),
 		m_lightPassQuadBuffer, 0,
 		tempUpload, 0,
@@ -204,16 +206,28 @@ void aZero::ECS::RenderSystem::CreateDeferredLightPass()
 	FrameBufferDesc.NumMipLevels = 1;
 	FrameBufferDesc.UsageFlags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
+	D3D12_CLEAR_VALUE BackBufferClearValue;
+	BackBufferClearValue.Color[0] = 0.f;
+	BackBufferClearValue.Color[1] = 0.f;
+	BackBufferClearValue.Color[2] = 0.f;
+	BackBufferClearValue.Color[3] = 1.f;
+	BackBufferClearValue.Format = FrameBufferDesc.Format;
+	FrameBufferDesc.ClearValue = &BackBufferClearValue;
+
+	m_LightPassRenderTextures.reserve(NUM_FRAMEBUFFERS);
 	for (int i = 0; i < NUM_FRAMEBUFFERS; i++)
 	{
 		m_LightPassRenderTextures.emplace_back(std::move(
-			D3D12::GPUResource(
+			D3D12::GPUResource_Deprecated(
 				m_device,
 				*m_resourceRecycler,
 				FrameBufferDesc)
 		));
 
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+		D3D12::GPUResource_Deprecated& RenderTexture = m_LightPassRenderTextures.at(m_LightPassRenderTextures.size() - 1);
+		RenderTexture.CreateTextureRTV(*m_descriptorManager);
+		
+		/*D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 		rtvDesc.Texture2D.MipSlice = 0;
 		rtvDesc.Texture2D.PlaneSlice = 0;
 		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -224,7 +238,13 @@ void aZero::ECS::RenderSystem::CreateDeferredLightPass()
 		m_device->CreateRenderTargetView(
 			m_LightPassRenderTextures[i].GetResource(),
 			&rtvDesc,
-			m_LightPassRenderTextureDescriptors[i].GetCPUHandle());
+			m_LightPassRenderTextureDescriptors[i].GetCPUHandle());*/
+	}
+
+	for (int i = 0; i < NUM_FRAMEBUFFERS; i++)
+	{
+		D3D12::GPUResource_Deprecated& RenderTexture = m_LightPassRenderTextures.at(i);
+		AddAsRenderSurface(RenderTexture);
 	}
 }
 
@@ -234,9 +254,9 @@ void aZero::ECS::RenderSystem::ExecuteDeferredGeometryPass(const Camera& camera,
 	ID3D12GraphicsCommandList* const cmdList = m_directContext.GetCommandList();
 	m_DeferredGeometryPass.BeginPass(cmdList, m_descriptorManager->GetResourceHeap().GetDescriptorHeap(), m_descriptorManager->GetSamplerHeap().GetDescriptorHeap());
 
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDNORMAL, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDPOSITION, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDNORMAL, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDPOSITION, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	// TODO - Fix clear color for gbuffers
 	cmdList->ClearRenderTargetView(m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).RenderTexture.GetDescriptorRTVDSV().GetCPUHandle(), m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).ClearValue.Color, 0, nullptr);
@@ -307,18 +327,18 @@ void aZero::ECS::RenderSystem::ExecuteDeferredGeometryPass(const Camera& camera,
 	m_directQueue->ExecuteContext({ m_directContext });
 }
 
-void aZero::ECS::RenderSystem::ExecuteDeferredLightPass(D3D12::GPUResource& RenderTarget, const D3D12::Descriptor& RenderTargetDescriptor)
+void aZero::ECS::RenderSystem::ExecuteDeferredLightPass(D3D12::GPUResource_Deprecated& RenderTarget, const D3D12::Descriptor& RenderTargetDescriptor)
 {
 	m_directContext.StartRecording();
 	ID3D12GraphicsCommandList* const cmdList = m_directContext.GetCommandList();
 
 	m_DeferredLightPass.BeginPass(cmdList, m_descriptorManager->GetResourceHeap().GetDescriptorHeap(), m_descriptorManager->GetSamplerHeap().GetDescriptorHeap());
 
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDNORMAL, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	D3D12::GPUResource::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDPOSITION, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::BASECOLOR, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDNORMAL, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, m_GBuffers.GetGBuffer(GBuffers::WORLDPOSITION, m_frameIndex).RenderTexture, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	D3D12::GPUResource::TransitionState(cmdList, RenderTarget, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
+	D3D12::GPUResource_Deprecated::TransitionState(cmdList, RenderTarget, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	m_DeferredLightPass.SetOutputTargets(cmdList, { RenderTargetDescriptor.GetCPUHandle() }, nullptr);
 
@@ -376,13 +396,23 @@ aZero::ECS::RenderSystem::RenderSystem(ComponentManager& componentManager,
 	m_device = device;
 
 	// Signature Setup
-	m_componentMask.set(m_componentManager.GetComponentBit<Component::Transform>());
-	m_componentMask.set(m_componentManager.GetComponentBit<Component::Mesh>());
-	m_componentMask.set(m_componentManager.GetComponentBit<Component::Material>());
+	/*m_componentMask.set(m_componentManager.GetComponentBit<Component::TransformComponent>());
+	m_componentMask.set(m_componentManager.GetComponentBit<Component::MeshComponent>());
+	m_componentMask.set(m_componentManager.GetComponentBit<Component::MaterialComponent>());*/
 
 	m_directContext = std::move(D3D12::CommandContext(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT));
 
 	m_GBuffers = std::move(GBuffers(m_device, *m_resourceRecycler, *m_descriptorManager, m_renderResolution, NUM_FRAMEBUFFERS));
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::BASECOLOR, 0).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::BASECOLOR, 1).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::BASECOLOR, 2).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDNORMAL, 0).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDNORMAL, 1).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDNORMAL, 2).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDPOSITION, 0).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDPOSITION, 1).RenderTexture);
+	AddAsRenderSurface(m_GBuffers.GetGBuffer(GBuffers::GBUFFERINDEX::WORLDPOSITION, 2).RenderTexture);
+
 	CreateDeferredGeometryPass();
 	CreateDeferredLightPass();
 

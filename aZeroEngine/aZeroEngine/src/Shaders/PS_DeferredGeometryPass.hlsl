@@ -37,10 +37,10 @@ FragmentOutput main(FragmentInput input)
     Texture2D<float4> albedoTexture = ResourceDescriptorHeap[albedoDescriptorIndex];
     color = float4(albedoTexture.Sample(basicSampler, input.uv).xyz, 1.f);
 
-    Texture2D<float4> normalTexture = ResourceDescriptorHeap[normalDescriptorIndex];
-    fragmentNormal = normalTexture.Sample(basicSampler, input.uv).xyz;
-    fragmentNormal = normalize(fragmentNormal * 2.0 - 1.0);
-    fragmentNormal = normalize(mul(fragmentNormal, input.TBN));
+   //Texture2D<float4> normalTexture = ResourceDescriptorHeap[normalDescriptorIndex];
+   //fragmentNormal = normalTexture.Sample(basicSampler, input.uv).xyz;
+   //fragmentNormal = normalize(fragmentNormal * 2.0 - 1.0);
+   //fragmentNormal = normalize(mul(fragmentNormal, input.TBN));
     
     FragmentOutput Output;
     Output.albedoColor = color;

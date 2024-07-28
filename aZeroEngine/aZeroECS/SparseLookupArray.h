@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <list>
-#include "GlobalMacros.h"
 
 template <typename ElementType>
 class SparseLookupArray
@@ -39,8 +38,6 @@ public:
 
 	void Add(unsigned int ID, ElementType&& Data)
 	{
-		DEBUG_CHECK(ID < m_IDtoIndexMap.size())
-
 		// get element index from freelist
 		unsigned int ElementIndex = m_Data.size();
 		if (m_IndexFreeList.empty())
@@ -61,10 +58,6 @@ public:
 
 	void Remove(unsigned int ID)
 	{
-		DEBUG_CHECK(ID < m_IDtoIndexMap.size())
-
-		DEBUG_CHECK(m_IDtoIndexMap[ID] != UINT_MAX)
-
 		unsigned int Index = m_IDtoIndexMap[ID];
 		unsigned int LastIndex = m_Data.size() - 1;
 		m_IDtoIndexMap[ID] = UINT_MAX;

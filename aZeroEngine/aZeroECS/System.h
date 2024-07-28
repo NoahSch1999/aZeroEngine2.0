@@ -10,7 +10,7 @@ namespace aZero
 		class System
 		{
 		protected:
-			std::bitset<MAXCOMPONENTS> m_componentMask;
+			std::bitset<MAX_COMPONENT_COUNT> m_componentMask;
 			DataStructures::PackedLookupArray<int, Entity> m_entities;
 			ComponentManagerSpecialization* m_componentManager = nullptr;
 
@@ -50,7 +50,7 @@ namespace aZero
 			{
 				if (!IsRegistered(entity))
 				{
-					std::bitset<MAXCOMPONENTS> bitwiseResult = m_componentMask & entity.GetComponentMask();
+					std::bitset<MAX_COMPONENT_COUNT> bitwiseResult = m_componentMask & entity.GetComponentMask();
 					if (bitwiseResult != m_componentMask)
 						return false;
 

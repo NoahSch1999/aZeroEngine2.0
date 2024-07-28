@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="src\Engine">
+      <UniqueIdentifier>{4c913cbd-d8fd-40d0-9661-c413d7a27dde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Helpers">
+      <UniqueIdentifier>{bbfae6bc-54a3-47b8-8488-a8885eecdb2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ThirdParty">
+      <UniqueIdentifier>{faeb76ca-4a2b-4d41-8811-4be7394818f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ThirdParty\ImGui">
+      <UniqueIdentifier>{4a312a84-eb6f-4c2d-8177-0a4af61919b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ECS">
+      <UniqueIdentifier>{28ea3d5b-2676-498c-a6b9-76d044c46c40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\DataStructures">
+      <UniqueIdentifier>{561362b7-8846-4c01-91c1-83d71e04ec05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engine\Caches">
+      <UniqueIdentifier>{b1f30fe6-e20a-45a9-ad19-723159fce300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engine\AssetTypes">
+      <UniqueIdentifier>{82f43720-1927-475c-bdc2-ab41cec0a2d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Input">
+      <UniqueIdentifier>{e1ad4ee2-b2d7-4f69-8fb7-aa153ed70d6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engine\CustomSystems">
+      <UniqueIdentifier>{555296ad-22a5-416e-9e64-0da4d1bab018}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engine\ComponentTypes">
+      <UniqueIdentifier>{f3edd720-48d6-4322-8526-f10b6e4fd50b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\D3D12Core.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Engine.h">
+      <Filter>src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\NoneCopyable.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ComponentManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Entity.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\EntityManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\System.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\SystemManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataStructures\PackedLookupArray.h">
+      <Filter>src\DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ECS.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Scene.h">
+      <Filter>src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Caches\AssetCacheBase.h">
+      <Filter>src\Engine\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Caches\MeshCache.h">
+      <Filter>src\Engine\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\AssetTypes\MeshAsset.h">
+      <Filter>src\Engine\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Caches\TextureCache.h">
+      <Filter>src\Engine\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\AssetTypes\TextureAsset.h">
+      <Filter>src\Engine\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\AssetTypes\MaterialAsset.h">
+      <Filter>src\Engine\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Caches\MaterialCache.h">
+      <Filter>src\Engine\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Caches\AudioCache.h">
+      <Filter>src\Engine\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\AssetTypes\AudioAsset.h">
+      <Filter>src\Engine\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\Input.h">
+      <Filter>src\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Window.h">
+      <Filter>src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\CustomSystems\PhysicsSystem.h">
+      <Filter>src\Engine\CustomSystems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\CustomSystems\RenderSystem.h">
+      <Filter>src\Engine\CustomSystems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\ComponentTypes\ComponentTypes.h">
+      <Filter>src\Engine\ComponentTypes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

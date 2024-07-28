@@ -28,7 +28,7 @@ namespace aZero
 			private:
 				struct GBuffer
 				{
-					D3D12::GPUResource RenderTexture;
+					D3D12::GPUResource_Deprecated RenderTexture;
 					D3D12_CLEAR_VALUE ClearValue;
 				};
 				std::vector<std::vector<GBuffer>> m_GBuffers;
@@ -55,7 +55,7 @@ namespace aZero
 					GBufferDesc.InitialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 					gBuffers[BASECOLOR].RenderTexture =
-						std::move(D3D12::GPUResource(
+						std::move(D3D12::GPUResource_Deprecated(
 							device,
 							resourceRecycler,
 							GBufferDesc));
@@ -71,7 +71,7 @@ namespace aZero
 					GBufferDesc.ClearValue = &gBuffers[WORLDNORMAL].ClearValue;
 					GBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
 					gBuffers[WORLDNORMAL].RenderTexture =
-						std::move(D3D12::GPUResource(
+						std::move(D3D12::GPUResource_Deprecated(
 							device,
 							resourceRecycler,
 							GBufferDesc
@@ -89,7 +89,7 @@ namespace aZero
 					GBufferDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
 					gBuffers[WORLDPOSITION].RenderTexture =
-						std::move(D3D12::GPUResource(
+						std::move(D3D12::GPUResource_Deprecated(
 							device,
 							resourceRecycler,
 							GBufferDesc));
@@ -223,19 +223,22 @@ namespace aZero
 
 			// Deferred Rendering
 			GBuffers m_GBuffers;
-			D3D12::GPUResource m_geometryPassDSV;
+			D3D12::GPUResource_Deprecated m_geometryPassDSV;
 			D3D12::Descriptor m_geometryPassDSVDescriptor;
 			D3D12_CLEAR_VALUE m_geometryPassDSVClearValue;
 
 			D3D12::GraphicsPass m_DeferredGeometryPass;
 			D3D12::GraphicsPass m_DeferredLightPass;
 			D3D12_VERTEX_BUFFER_VIEW m_lightPassVBV;
-			D3D12::GPUResource m_lightPassQuadBuffer;
-			std::vector<D3D12::GPUResource> m_LightPassRenderTextures;
+			D3D12::GPUResource_Deprecated m_lightPassQuadBuffer;
+			std::vector<D3D12::GPUResource_Deprecated> m_LightPassRenderTextures;
 			std::vector<D3D12::Descriptor> m_LightPassRenderTextureDescriptors;
 			//
 
 			DXM::Vector2 m_renderResolution;
+
+			// Surfaces that should be resized when calling ::ResizeRenderSurfaces()
+			std::vector<D3D12::GPUResource_Deprecated*> m_RenderSurfaces;
 
 		private:
 
@@ -246,7 +249,7 @@ namespace aZero
 
 			void ExecuteDeferredGeometryPass(const Camera& camera, const std::vector<Entity>& entitiesToRender);
 
-			void ExecuteDeferredLightPass(D3D12::GPUResource& RenderTarget, const D3D12::Descriptor& RenderTargetDescriptor);
+			void ExecuteDeferredLightPass(D3D12::GPUResource_Deprecated& RenderTarget, const D3D12::Descriptor& RenderTargetDescriptor);
 
 			// TODO - Implement culling techniques used here (frustrum, octree etc...)
 			void CalculateVisibility(const Camera& camera, std::vector<Entity>& visibleEntities, const std::vector<Entity>& allEntities);
@@ -264,7 +267,7 @@ namespace aZero
 				
 
 			// TODO - Make it grab the final render output which should (?) be local to the renderer/rendersystem
-			D3D12::GPUResource& GetFrameRendertarget()
+			D3D12::GPUResource_Deprecated& GetFrameRendertarget()
 			{
 				return m_LightPassRenderTextures[m_frameIndex];
 			}
@@ -300,6 +303,25 @@ namespace aZero
 			virtual void OnUnRegister() override
 			{
 				printf("Entity unregistered for RenderSystem\n");
+			}
+
+			const DXM::Vector2& GetRenderResolution() { return m_renderResolution; }
+
+			// NOTE - The input dimensions can easily be modified by a percentage if you wanna use upscaling.
+				// Upscaling can easily be resolved right before copying the final render surface to the swapchain back buffer.
+			void ResizeRenderSurfaces(const DXM::Vector2& NewSurfaceDimensions)
+			{
+				m_renderResolution = NewSurfaceDimensions;
+				for (auto& Surface : m_RenderSurfaces)
+				{
+					Surface->ResizeTexture(NewSurfaceDimensions);
+				}
+			}
+
+			void AddAsRenderSurface(D3D12::GPUResource_Deprecated& RenderSurfaceResource)
+			{
+				DEBUG_CHECK(RenderSurfaceResource.GetResource()->GetDesc().Dimension == D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D);
+				m_RenderSurfaces.push_back(&RenderSurfaceResource);
 			}
 		};
 	}

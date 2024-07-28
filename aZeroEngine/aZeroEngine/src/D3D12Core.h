@@ -15,3 +15,8 @@ namespace DXM = DirectX::SimpleMath;
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif // _DEBUG
+
+namespace aZero
+{
+	extern Microsoft::WRL::ComPtr<ID3D12Device> gDevice;
+}

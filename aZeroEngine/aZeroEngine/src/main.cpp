@@ -23,59 +23,21 @@ int WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR commandLine, int s
 #endif // DEBUG
 
 	{
+
 		// Setup engine
 		DXM::Vector2 Resolution(1920, 1080);
 		aZero::Engine engine(instance, Resolution);
+		AllocConsole();
+		freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 
-		// Get Window associated with the engine
-		std::shared_ptr<aZero::Camera> camera(
-			std::make_shared<aZero::Camera>(
-				aZero::Camera::PROJECTIONTYPE::PERSPECTIVE,
-				DXM::Vector3::Zero,
-				DXM::Vector3(0.f, 0.f, 1.f),
-				Resolution
-				)
-		);
+		std::shared_ptr<aZero::Window> activeWindow(engine.GetMainWindow());
 
-		std::shared_ptr<aZero::Window> activeWindow(engine.GetActiveWindow());
-
-		engine.SetActiveCamera(camera);
 		// Run engine
 		while (activeWindow->IsOpen())
 		{
 			if (GetAsyncKeyState(VK_ESCAPE))
 			{
 				break;
-			}
-
-			if (GetAsyncKeyState('W'))
-			{
-				camera->MoveRelative({ 0, 0, -0.001f });
-			}
-
-			if (GetAsyncKeyState('S'))
-			{
-				camera->MoveRelative({ 0, 0, 0.001f });
-			}
-
-			if (GetAsyncKeyState('D'))
-			{
-				camera->MoveRelative({ 0.001f, 0, 0 });
-			}
-
-			if (GetAsyncKeyState('A'))
-			{
-				camera->MoveRelative({ -0.001f, 0, 0 });
-			}
-
-			if (GetAsyncKeyState(VK_SPACE))
-			{
-				camera->MoveRelative({ 0, 0.001f, 0 });
-			}
-
-			if (GetAsyncKeyState(VK_SPACE))
-			{
-				camera->MoveRelative({ 0, -0.001f, 0 });
 			}
 
 			engine.BeginFrame();

@@ -1,10 +1,8 @@
 #pragma once
 #include <memory>
 
+#include "../../D3D12Core.h"
 #include "../../Helpers/NoneCopyable.h"
-#include "../../ECS/ECS.h"
-#include "../D3D12Wrappers/ResourceRecycler.h"
-#include "../D3D12Wrappers/Descriptors/DescriptorManager.h"
 
 namespace aZero
 {

@@ -44,10 +44,6 @@ namespace aZero
 					m_freeIDs.insert(ID);
 				}
 			}
-
-			// TODO - Define sm~mooove operator ;)
-			IndexFreelist(IndexFreelist&&) = delete;
-			IndexFreelist operator=(IndexFreelist&&) = delete;
 		};
 	}
 }

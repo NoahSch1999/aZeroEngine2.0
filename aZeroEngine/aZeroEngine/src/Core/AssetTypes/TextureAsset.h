@@ -21,7 +21,7 @@ namespace aZero
 		{
 		private:
 			std::string Name = "";
-			D3D12::GPUResource m_Texture;
+			D3D12::GPUResource_Deprecated m_Texture;
 
 		public:
 			Texture() = default;
@@ -47,11 +47,11 @@ namespace aZero
 				TextureDesc.NumMipLevels = ResourceDesc.MipLevels;
 				TextureDesc.UsageFlags = ResourceUsageFlags;
 
-				m_Texture = std::move(D3D12::GPUResource(Device, ResourceRecycler, TextureDesc));
+				m_Texture = std::move(D3D12::GPUResource_Deprecated(Device, ResourceRecycler, TextureDesc));
 
 				// TODO - Create subdata and fix the upload from upload buffer to texture
 				D3D12_SUBRESOURCE_DATA SubData;
-				D3D12::GPUResource::UploadToTexture(CmdList, m_Texture, LoadedTextureData.SubresourceData);
+				D3D12::GPUResource_Deprecated::UploadToTexture(CmdList, m_Texture, LoadedTextureData.SubresourceData);
 
 			#ifdef _DEBUG
 				std::wstring DebugName(Name.begin(), Name.end());
@@ -59,7 +59,7 @@ namespace aZero
 			#endif
 			}
 
-			D3D12::GPUResource& GetTexture()
+			D3D12::GPUResource_Deprecated& GetTexture()
 			{
 				return m_Texture;
 			}

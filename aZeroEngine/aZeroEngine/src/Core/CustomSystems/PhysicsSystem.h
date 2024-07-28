@@ -16,9 +16,9 @@ namespace aZero
 				:System(componentManager)
 			{
 				// Signature Setup
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::Transform>());
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::Mesh>());
-				m_componentMask.set(m_componentManager.GetComponentBit<Component::RigidBody>());
+				m_componentMask.set(m_componentManager.GetComponentBit<Component::TransformComponent>());
+				m_componentMask.set(m_componentManager.GetComponentBit<Component::MeshComponent>());
+				m_componentMask.set(m_componentManager.GetComponentBit<Component::RigidBodyComponent>());
 			}
 
 			virtual void Update() override

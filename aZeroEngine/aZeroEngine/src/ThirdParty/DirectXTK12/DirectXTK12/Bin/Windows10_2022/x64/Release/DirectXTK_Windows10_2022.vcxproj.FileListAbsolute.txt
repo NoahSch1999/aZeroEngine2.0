@@ -1,0 +1,17 @@
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\DirectXTK12.lib
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\priconfig.xml
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\priconfig.xml.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\unfiltered.layout.resfiles
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\unfiltered.layout.resfiles.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\filtered.layout.resfiles
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\filtered.layout.resfiles.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\excluded.layout.resfiles
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\excluded.layout.resfiles.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\resources.resfiles
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\resources.resfiles.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\pri.resfiles
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\pri.resfiles.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\DirectXTK12.pri
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\qualifiers.txt
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\qualifiers.txt.intermediate
+C:\Programming\aZeroEngine2.0\aZeroEngine\aZeroEngine\src\ThirdParty\DirectXTK12\DirectXTK12\Bin\Windows10_2022\x64\Release\MultipleQualifiersPerDimensionFound.txt

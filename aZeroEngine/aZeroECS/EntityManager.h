@@ -6,68 +6,69 @@ namespace aZero
 {
 	namespace ECS
 	{
-		/** @brief Creates and recycles Entity objects.
+		/** @brief A class used to generate unique Entity objects
 		*/
-		template<typename ComponentManagerSpecialization>
 		class EntityManager
 		{
 		private:
-			int m_currentMax = 0;
-			std::queue<int> m_freeEntityIDs;
-			ComponentManagerSpecialization& m_componentManager;
+			int m_CurrentMax = 0;
+			std::queue<int> m_FreeEntityIDs;
 
 		public:
-			EntityManager(ComponentManagerSpecialization& componentManager)
-				:m_componentManager(componentManager) { }
+			EntityManager() = default;
 			~EntityManager() = default;
 
-			// TODO - Implement move and copy constructors / operators
 			EntityManager(const EntityManager&) = delete;
-			EntityManager(EntityManager&&) = delete;
 			EntityManager operator=(const EntityManager&) = delete;
-			EntityManager operator=(EntityManager&&) = delete;
+
+			EntityManager(EntityManager&& Other) noexcept
+			{
+				m_CurrentMax = Other.m_CurrentMax;
+				m_FreeEntityIDs = Other.m_FreeEntityIDs;
+			}
+
+			EntityManager& operator=(EntityManager&& Other) noexcept
+			{
+				if (this != &Other)
+				{
+					m_CurrentMax = Other.m_CurrentMax;
+					m_FreeEntityIDs = Other.m_FreeEntityIDs;
+				}
+				return *this;
+			}
 
 			/** Creates a new Entity object with a unique ID.
 			@return Entity
 			*/
 			Entity CreateEntity()
 			{
-				if (!m_freeEntityIDs.empty())
+				Entity NewEntity;
+
+				if (!m_FreeEntityIDs.empty())
 				{
-					const int id = m_freeEntityIDs.front();
-					m_freeEntityIDs.pop();
-					return Entity(id);
+					NewEntity.m_ID = m_FreeEntityIDs.front();
+					m_FreeEntityIDs.pop();
+				}
+				else
+				{
+					NewEntity.m_ID = m_CurrentMax++;
 				}
 
-				const int id = m_currentMax;
-				m_currentMax++;
-				return Entity(id);
+				return NewEntity;
 			}
 
-			/** Recycles the input Entity so that it's unique ID can be reused when calling EntityManager::CreateEntity().
-			* Removes all components for the Entity and unbinds it from all registered System subclasses.
-			* Changes the input Entity object ID to -1 to indicate that it is recycled.
-			* Doesn't do anything if the input Entity ID is -1.
+			/** Recycles the input Entity ID so that it can be reused.
+			* Invalidates the input Entity for future use.
 			@param The Entity which should be recycled
 			@return void
 			*/
-			void RemoveEntity(Entity& entity)
+			void RemoveEntity(Entity& Ent)
 			{
-				if (entity.GetID() == -1)
+				if (Ent.m_ID == UINT_MAX)
 					return;
 
-				/*for (const auto& [index, bitFlag] : m_componentManager.GetBitFlagMap())
-				{
-					if (entity.m_componentMask.test(bitFlag))
-					{
-						m_componentManager.RemoveComponent(entity, index);
-					}
-				}*/
-
-				// TODO - Check if this is unnecessary
-				//m_systemManager.RemoveEntityFromSystems(entity);
-
-				m_freeEntityIDs.push(entity.GetID());
+				m_FreeEntityIDs.push(Ent.m_ID);
+				Ent.m_ID = UINT_MAX;
 			}
 		};
 	}

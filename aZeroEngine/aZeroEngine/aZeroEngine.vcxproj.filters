@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="src\D3D12Core.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataStructures\PackedLookupArray.h">
+      <Filter>src\DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ComponentManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ECS.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Entity.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\EntityManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\System.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\SystemManager.h">
+      <Filter>src\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Input\Input.h">
+      <Filter>src\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Engine.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Scene.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Window.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\AssetTypes\AudioAsset.h">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\AssetTypes\MaterialAsset.h">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\AssetTypes\MeshAsset.h">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\AssetTypes\TextureAsset.h">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Caches\AssetCacheBase.h">
+      <Filter>src\Core\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Caches\MaterialCache.h">
+      <Filter>src\Core\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Caches\MeshCache.h">
+      <Filter>src\Core\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Caches\TextureCache.h">
+      <Filter>src\Core\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\ComponentTypes\ComponentTypes.h">
+      <Filter>src\Core\ComponentTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\CustomSystems\PhysicsSystem.h">
+      <Filter>src\Core\CustomSystems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\CustomSystems\RenderSystem.h">
+      <Filter>src\Core\CustomSystems</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Camera.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\ResourceRecycler.h">
+      <Filter>src\Core\D3D12Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\GPUResource.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Macros\DebugMacros.h">
+      <Filter>src\Macros</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Singleton\Singleton.h">
+      <Filter>src\Core\Singleton</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Caches\ShaderCache.h">
+      <Filter>src\Core\Caches</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Pipeline\Shader.h">
+      <Filter>src\Core\D3D12Wrappers\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Descriptors\Descriptor.h">
+      <Filter>src\Core\D3D12Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Descriptors\DescriptorHeap.h">
+      <Filter>src\Core\D3D12Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DataStructures\IndexFreelist.h">
+      <Filter>src\DataStructures</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\SwapChain.h">
+      <Filter>src\Core\D3D12Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Pipeline\Graphics\GraphicsPass.h">
+      <Filter>src\Core\D3D12Wrappers\Pipeline\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Pipeline\Compute\ComputePass.h">
+      <Filter>src\Core\D3D12Wrappers\Pipeline\Compute</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Descriptors\DescriptorManager.h">
+      <Filter>src\Core\D3D12Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Pipeline\InputLayout.h">
+      <Filter>src\Core\D3D12Wrappers\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Commands\CommandContext.h">
+      <Filter>src\Core\D3D12Wrappers\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Commands\CommandQueue.h">
+      <Filter>src\Core\D3D12Wrappers\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\NoneCopyable.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\ComponentArray.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\ComponentManager.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\Entity.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\EntityManager.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\PackedLookupArray.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\SparseLookupArray.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\System.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\aZeroECS\SystemManager.h">
+      <Filter>aZeroECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Renderer.h">
+      <Filter>src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\CommandProcessor.h">
+      <Filter>src\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\GPUBuffer.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\GPUTexture.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\UploadHeapBuffer.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\ReadbackHeapBuffer.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\DefaultHeapBuffer.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\D3D12Wrappers\Resources\StructredBuffer.h">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{fa95b195-0bc4-474d-a4eb-29b8006204c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\DataStructures">
+      <UniqueIdentifier>{58de228a-07c2-4f3f-b9bd-571d0cf8281e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ECS">
+      <UniqueIdentifier>{23e69cea-2d61-4822-b660-4c3f32fe6b9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{5fe95f2c-a70e-4a1f-a31b-22d89f89beed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Input">
+      <UniqueIdentifier>{4030ef91-a94e-482f-a019-2f2eadbce1fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\AssetTypes">
+      <UniqueIdentifier>{d333f7a1-b0c2-40f3-b60f-9464caaac069}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\Caches">
+      <UniqueIdentifier>{bcca420d-958e-40a1-8644-b4e5b17c6203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\ComponentTypes">
+      <UniqueIdentifier>{8f05a707-98e7-4d53-9939-a1c3a1ebfae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\CustomSystems">
+      <UniqueIdentifier>{7ac7d210-2ab4-4108-b787-9f7bfa9ad885}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers">
+      <UniqueIdentifier>{06cff2f3-c50a-4d16-8197-337cc38f1cae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Resources">
+      <UniqueIdentifier>{ece42174-d8d9-465b-b758-62f0c8307946}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Macros">
+      <UniqueIdentifier>{5f677144-81e2-45c5-9cf8-1b46698d99ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\Singleton">
+      <UniqueIdentifier>{ce2b7185-9c30-4d3b-a191-20e116793147}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Helpers">
+      <UniqueIdentifier>{64a99aaa-00f3-4b8f-8420-072081efec7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Pipeline">
+      <UniqueIdentifier>{84e31704-b518-4146-9543-0a648dab7aae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Pipeline\Graphics">
+      <UniqueIdentifier>{5e0c470e-b004-41f3-a990-10bfaa593747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Pipeline\Compute">
+      <UniqueIdentifier>{df42e7ee-5032-4cab-bd2d-ceeca885b0fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Descriptors">
+      <UniqueIdentifier>{f2d98a98-0f96-4d02-b62a-157a2aa0ae74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core\D3D12Wrappers\Commands">
+      <UniqueIdentifier>{ad22433f-400d-45ec-b939-f56284caf33a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Shaders">
+      <UniqueIdentifier>{8e56a5ba-a28b-44eb-b3e6-a529f1cce524}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="aZeroECS">
+      <UniqueIdentifier>{554d9573-ec75-4fef-bbcf-d4fa0550df5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Renderer">
+      <UniqueIdentifier>{77683fe2-fac8-41f8-ac7d-2810786aca46}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Singleton\Singleton.cpp">
+      <Filter>src\Core\Singleton</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\D3D12Wrappers\Pipeline\Shader.cpp">
+      <Filter>src\Core\D3D12Wrappers\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Window.cpp">
+      <Filter>src\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\D3D12Wrappers\SwapChain.cpp">
+      <Filter>src\Core\D3D12Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\CustomSystems\RenderSystem.cpp">
+      <Filter>src\Core\CustomSystems</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\AssetTypes\TextureAsset.cpp">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\D3D12Wrappers\Resources\GPUResource.cpp">
+      <Filter>src\Core\D3D12Wrappers\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\AssetTypes\MeshAsset.cpp">
+      <Filter>src\Core\AssetTypes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\aZeroECS\aZeroECS.cpp">
+      <Filter>aZeroECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\D3D12Core.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\D3D12Wrappers\Resources\DefaultHeapBuffer.cpp" />
+    <ClCompile Include="src\Core\D3D12Wrappers\Resources\UploadHeapBuffer.cpp" />
+    <ClCompile Include="src\Core\D3D12Wrappers\Resources\ReadbackHeapBuffer.cpp" />
+    <ClCompile Include="src\Core\D3D12Wrappers\Resources\GPUTexture.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="src\Shaders\VS_DeferredGeometryPass.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\PS_DeferredGeometryPass.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_DeferredLightPass.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PS_DeferredLightPass.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\BasePassVS.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\BasePassPS.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\Shaders\LightPassCS.hlsl">
+      <Filter>src\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

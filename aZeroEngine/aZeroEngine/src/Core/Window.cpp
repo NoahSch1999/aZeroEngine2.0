@@ -5,12 +5,19 @@ LRESULT WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-aZero::Window::Window::Window(const D3D12::CommandQueue& graphicsQueue, D3D12::DescriptorManager& descriptorManager, HINSTANCE appInstance, 
+aZero::Window::Window::Window(HINSTANCE appInstance, 
 	WNDPROC winProcedure, DXGI_FORMAT backBufferFormat, const DXM::Vector2& dimensions, bool fullscreen, const std::string& windowName)
 {
+	Init(appInstance, winProcedure, backBufferFormat, dimensions, fullscreen, windowName);
+}
+
+void aZero::Window::Init(HINSTANCE appInstance,
+	WNDPROC winProcedure, DXGI_FORMAT backBufferFormat, const DXM::Vector2& dimensions, bool fullscreen, const std::string& windowName)
+{
+	m_renderSurfaceFormat = backBufferFormat;
 	m_lastWindowedDimensions = dimensions;
 	m_appInstance = appInstance;
-	m_windowName.assign(windowName.begin(), windowName.end());
+	m_windowName.assign(windowName.begin(), windowName.end()); // TODO - possible to get name via handle for unreg?
 
 	WNDCLASS wc = { };
 	wc.lpfnWndProc = winProcedure;
@@ -42,8 +49,6 @@ aZero::Window::Window::Window(const D3D12::CommandQueue& graphicsQueue, D3D12::D
 	}
 
 	ShowWindow(m_windowHandle, SW_SHOWNORMAL);
-
-	m_swapChain = std::make_unique<D3D12::SwapChain>(m_windowHandle, graphicsQueue, descriptorManager, backBufferFormat);
 }
 
 aZero::Window::Window::~Window()
@@ -93,6 +98,7 @@ void aZero::Window::Window::Resize(const DXM::Vector2& dimensions, const DXM::Ve
 	m_lastWindowedDimensions = dimensions;
 	SetFullscreen(false);
 	SetWindowPos(m_windowHandle, NULL, position.x, position.y, dimensions.x, dimensions.y, 0);
+	m_swapChain->Resize(dimensions);
 }
 
 DXM::Vector2 aZero::Window::Window::GetClientDimensions() const

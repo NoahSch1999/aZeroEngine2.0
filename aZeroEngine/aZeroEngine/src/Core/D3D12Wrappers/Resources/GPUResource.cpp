@@ -1,17 +1,18 @@
 #include "GPUResource.h"
 
-void aZero::D3D12::GPUResource::Initialize(ID3D12Device* const Device, const D3D12_RESOURCE_DESC& Description, const RESOURCE_ACCESS_TYPE AccessType, const D3D12_CLEAR_VALUE* ClearValue, const D3D12_RESOURCE_STATES InitialState)
+void aZero::D3D12::GPUResource_Deprecated::Initialize(ID3D12Device* const Device, const D3D12_RESOURCE_DESC& Description, const RESOURCE_ACCESS_TYPE AccessType, const D3D12_CLEAR_VALUE* ClearValue, const D3D12_RESOURCE_STATES InitialState)
 {
 	m_AccessType = AccessType;
-	m_ResourceState = InitialState;
 
 	if (m_Resource)
 	{
 		m_ResourceRecycler->RecycleResource(m_Resource);
 		m_Resource = nullptr;
 		m_MappedPtr = nullptr;
-		m_ResourceState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_COMMON;
+		m_ResourceState = InitialState;
 	}
+
+	m_ResourceState = InitialState;
 
 	// TODO - Add memory pool and other D3D12_HEAP_PROPERTIES settings
 	//DEBUG_CHECK(AccessType != RESOURCE_ACCESS_TYPE::INVALID);
@@ -29,7 +30,7 @@ void aZero::D3D12::GPUResource::Initialize(ID3D12Device* const Device, const D3D
 		HeapProps.Type = D3D12_HEAP_TYPE_READBACK;
 	}
 
-	const HRESULT hr = Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, &Description, InitialState, ClearValue, IID_PPV_ARGS(&m_Resource));
+	const HRESULT hr = Device->CreateCommittedResource(&HeapProps, D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE, &Description, m_ResourceState, ClearValue, IID_PPV_ARGS(&m_Resource));
 	DEBUG_CHECK(SUCCEEDED(hr));
 
 	if (AccessType == RESOURCE_ACCESS_TYPE::CPU_READ || AccessType == RESOURCE_ACCESS_TYPE::CPU_WRITE)
@@ -44,12 +45,12 @@ void aZero::D3D12::GPUResource::Initialize(ID3D12Device* const Device, const D3D
 #endif // _DEBUG
 }
 
-aZero::D3D12::GPUResource::GPUResource(ID3D12Device* Device, ResourceRecycler& ResourceRecycler, const TextureResourceDesc& Description)
+aZero::D3D12::GPUResource_Deprecated::GPUResource_Deprecated(ID3D12Device* Device, ResourceRecycler& ResourceRecycler, const TextureResourceDesc& Description)
 	:m_ResourceRecycler(&ResourceRecycler)
 {
 	if (Description.ClearValue)
 	{
-		m_ClearValue = *Description.ClearValue;
+		m_ClearValue = std::make_optional<D3D12_CLEAR_VALUE>(*Description.ClearValue);
 	}
 
 	D3D12_RESOURCE_DESC D3Desc;
@@ -73,7 +74,7 @@ aZero::D3D12::GPUResource::GPUResource(ID3D12Device* Device, ResourceRecycler& R
 		Description.InitialState);
 }
 
-aZero::D3D12::GPUResource::GPUResource(ID3D12Device* Device, ResourceRecycler& ResourceRecycler, const BufferResourceDesc& Description)
+aZero::D3D12::GPUResource_Deprecated::GPUResource_Deprecated(ID3D12Device* Device, ResourceRecycler& ResourceRecycler, const BufferResourceDesc& Description)
 	:m_ResourceRecycler(&ResourceRecycler)
 {
 	D3D12_RESOURCE_DESC D3Desc;
@@ -96,7 +97,7 @@ aZero::D3D12::GPUResource::GPUResource(ID3D12Device* Device, ResourceRecycler& R
 		nullptr, D3D12_RESOURCE_STATE_COMMON);
 }
 
-aZero::D3D12::GPUResource::GPUResource(GPUResource&& other) noexcept
+aZero::D3D12::GPUResource_Deprecated::GPUResource_Deprecated(GPUResource_Deprecated&& other) noexcept
 {
 	m_Resource = other.m_Resource;
 	m_ResourceRecycler = other.m_ResourceRecycler;
@@ -113,13 +114,13 @@ aZero::D3D12::GPUResource::GPUResource(GPUResource&& other) noexcept
 	UniqueDebugIndex = other.UniqueDebugIndex;
 #endif // _DEBUG
 
-
 	other.m_DescriptorManager = nullptr;
 	other.m_MappedPtr = nullptr;
 	other.m_Resource = nullptr;
+	other.m_ClearValue.reset();
 }
 
-aZero::D3D12::GPUResource& aZero::D3D12::GPUResource::operator=(GPUResource&& other) noexcept
+aZero::D3D12::GPUResource_Deprecated& aZero::D3D12::GPUResource_Deprecated::operator=(GPUResource_Deprecated&& other) noexcept
 {
 
 	if (this != &other)
@@ -142,11 +143,12 @@ aZero::D3D12::GPUResource& aZero::D3D12::GPUResource::operator=(GPUResource&& ot
 		other.m_DescriptorManager = nullptr;
 		other.m_MappedPtr = nullptr;
 		other.m_Resource = nullptr;
+		other.m_ClearValue.reset();
 	}
 	return *this;
 }
 
-aZero::D3D12::GPUResource::~GPUResource()
+aZero::D3D12::GPUResource_Deprecated::~GPUResource_Deprecated()
 {
 	if (m_Resource)
 	{
@@ -186,7 +188,54 @@ aZero::D3D12::GPUResource::~GPUResource()
 	}
 }
 
-void aZero::D3D12::GPUResource::CreateTextureSRV(D3D12::DescriptorManager& DescriptorManager, int MaxMipLevel)
+void aZero::D3D12::GPUResource_Deprecated::ResizeTexture(const DXM::Vector2& NewDimensions)
+{
+	DEBUG_CHECK((m_Resource != nullptr));
+
+	ID3D12Device* Device = nullptr;
+	m_Resource->GetDevice(IID_PPV_ARGS(&Device));
+
+	const D3D12_RESOURCE_DESC& ResourceDesc = m_Resource->GetDesc();
+
+	D3D12_RESOURCE_DESC D3Desc;
+	D3Desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	D3Desc.Format = ResourceDesc.Format;
+	D3Desc.MipLevels = ResourceDesc.MipLevels;
+	D3Desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	D3Desc.Width = NewDimensions.x;
+	D3Desc.Height = NewDimensions.y;
+	D3Desc.DepthOrArraySize = 1;
+	D3Desc.Alignment = 0;
+	D3Desc.SampleDesc.Count = ResourceDesc.SampleDesc.Count;
+	D3Desc.SampleDesc.Quality = 0;
+	D3Desc.Flags = ResourceDesc.Flags;
+	
+	Initialize(Device, D3Desc, m_AccessType, m_ClearValue.has_value() ? &m_ClearValue.value() : nullptr, m_ResourceState);
+
+	if (m_DsvRtvDescriptor.GetHeapIndex() != -1)
+	{
+		if ((ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) == D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+		{
+			CreateTextureRTV(*m_DescriptorManager); // TODO - Handle specific mip level
+		}
+		else if((ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) == D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		{
+			CreateTextureDSV(*m_DescriptorManager); // TODO - Handle specific mip level
+		}
+	}
+
+	if (m_SrvDescriptor.GetHeapIndex() != -1)
+	{
+		CreateTextureSRV(*m_DescriptorManager); // TODO - Handle specific mip level
+	}
+
+	if (m_UavDescriptor.GetHeapIndex() != -1)
+	{
+		CreateTextureUAV(*m_DescriptorManager); // TODO - Handle specific mip level
+	}
+}
+
+void aZero::D3D12::GPUResource_Deprecated::CreateTextureSRV(D3D12::DescriptorManager& DescriptorManager, int MaxMipLevel)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -223,7 +272,7 @@ void aZero::D3D12::GPUResource::CreateTextureSRV(D3D12::DescriptorManager& Descr
 	Device->CreateShaderResourceView(m_Resource.Get(), &SrvDesc, m_SrvDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::CreateBufferSRV(D3D12::DescriptorManager& DescriptorManager, int ElementSizeBytes, int NumElements, int FirstElementIndex)
+void aZero::D3D12::GPUResource_Deprecated::CreateBufferSRV(D3D12::DescriptorManager& DescriptorManager, int ElementSizeBytes, int NumElements, int FirstElementIndex)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -250,7 +299,7 @@ void aZero::D3D12::GPUResource::CreateBufferSRV(D3D12::DescriptorManager& Descri
 	Device->CreateShaderResourceView(m_Resource.Get(), &SrvDesc, m_SrvDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::CreateTextureUAV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
+void aZero::D3D12::GPUResource_Deprecated::CreateTextureUAV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -284,7 +333,7 @@ void aZero::D3D12::GPUResource::CreateTextureUAV(D3D12::DescriptorManager& Descr
 	Device->CreateUnorderedAccessView(GetResource(), nullptr, &UavDesc, m_UavDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::CreateBufferUAV(D3D12::DescriptorManager& DescriptorManager, int ElementSizeBytes, int NumElements, int FirstElementIndex)
+void aZero::D3D12::GPUResource_Deprecated::CreateBufferUAV(D3D12::DescriptorManager& DescriptorManager, int ElementSizeBytes, int NumElements, int FirstElementIndex)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -322,7 +371,7 @@ void aZero::D3D12::GPUResource::CreateBufferUAV(D3D12::DescriptorManager& Descri
 	Device->CreateUnorderedAccessView(GetResource(), nullptr, &UavDesc, m_UavDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::CreateTextureRTV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
+void aZero::D3D12::GPUResource_Deprecated::CreateTextureRTV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -355,7 +404,7 @@ void aZero::D3D12::GPUResource::CreateTextureRTV(D3D12::DescriptorManager& Descr
 	Device->CreateRenderTargetView(m_Resource.Get(), &RtvDesc, m_DsvRtvDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::CreateTextureDSV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
+void aZero::D3D12::GPUResource_Deprecated::CreateTextureDSV(D3D12::DescriptorManager& DescriptorManager, int MipIndex)
 {
 	DEBUG_CHECK(m_Resource);
 	m_DescriptorManager = &DescriptorManager;
@@ -387,7 +436,7 @@ void aZero::D3D12::GPUResource::CreateTextureDSV(D3D12::DescriptorManager& Descr
 	Device->CreateDepthStencilView(m_Resource.Get(), &DsvDesc, m_DsvRtvDescriptor.GetCPUHandle());
 }
 
-void aZero::D3D12::GPUResource::UploadToTexture(ID3D12GraphicsCommandList* CmdList, GPUResource& DstResource, const std::vector<D3D12_SUBRESOURCE_DATA>& SubresourceData)
+void aZero::D3D12::GPUResource_Deprecated::UploadToTexture(ID3D12GraphicsCommandList* CmdList, GPUResource_Deprecated& DstResource, const std::vector<D3D12_SUBRESOURCE_DATA>& SubresourceData)
 {
 	//DEBUG_CHECK(DstResource.m_Resource->GetDesc().Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D);
 
@@ -415,7 +464,7 @@ void aZero::D3D12::GPUResource::UploadToTexture(ID3D12GraphicsCommandList* CmdLi
 	DstResource.m_ResourceRecycler->RecycleResource(StagingBuffer);
 }
 
-void aZero::D3D12::GPUResource::CopyBufferToBuffer(ID3D12GraphicsCommandList* CmdList, GPUResource& DstResource, int DstOffset, GPUResource& SrcResource, int SrcOffset, int NumBytes, const void* OptionalData, int OptionalDataOffset)
+void aZero::D3D12::GPUResource_Deprecated::CopyBufferToBuffer(ID3D12GraphicsCommandList* CmdList, GPUResource_Deprecated& DstResource, int DstOffset, GPUResource_Deprecated& SrcResource, int SrcOffset, int NumBytes, const void* OptionalData, int OptionalDataOffset)
 {
 	if (DstResource.m_AccessType == RESOURCE_ACCESS_TYPE::GPU_ONLY || SrcResource.m_AccessType == RESOURCE_ACCESS_TYPE::GPU_ONLY)
 	{
@@ -440,7 +489,7 @@ void aZero::D3D12::GPUResource::CopyBufferToBuffer(ID3D12GraphicsCommandList* Cm
 	}
 }
 
-void aZero::D3D12::GPUResource::CopyTextureToTexture(ID3D12GraphicsCommandList* CmdList, GPUResource& DstResource, const DXM::Vector2& DstOffset, GPUResource& SrcResource, const DXM::Vector2& SrcOffset)
+void aZero::D3D12::GPUResource_Deprecated::CopyTextureToTexture(ID3D12GraphicsCommandList* CmdList, GPUResource_Deprecated& DstResource, const DXM::Vector2& DstOffset, GPUResource_Deprecated& SrcResource, const DXM::Vector2& SrcOffset)
 {
 	const D3D12_RESOURCE_DESC& DstResourceDesc = DstResource.m_Resource->GetDesc();
 	const D3D12_RESOURCE_DESC& SrcResourceDesc = SrcResource.m_Resource->GetDesc();
@@ -451,8 +500,8 @@ void aZero::D3D12::GPUResource::CopyTextureToTexture(ID3D12GraphicsCommandList* 
 		DstResourceDesc.Height == SrcResourceDesc.Height
 		)
 	{
-		GPUResource::TransitionState(CmdList, DstResource.m_Resource.Get(), DstResource.m_ResourceState, D3D12_RESOURCE_STATE_COPY_DEST);
-		GPUResource::TransitionState(CmdList, SrcResource.m_Resource.Get(), SrcResource.m_ResourceState, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		GPUResource_Deprecated::TransitionState(CmdList, DstResource.m_Resource.Get(), DstResource.m_ResourceState, D3D12_RESOURCE_STATE_COPY_DEST);
+		GPUResource_Deprecated::TransitionState(CmdList, SrcResource.m_Resource.Get(), SrcResource.m_ResourceState, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
 		// NOTE - Copying causes the resources to go decay into D3D12_RESOURCE_STATE_COMMON once the GPU has executed the recorded command
 		CmdList->CopyResource(DstResource.m_Resource.Get(), SrcResource.m_Resource.Get());
@@ -463,7 +512,7 @@ void aZero::D3D12::GPUResource::CopyTextureToTexture(ID3D12GraphicsCommandList* 
 	}
 }
 
-void aZero::D3D12::GPUResource::TransitionState(ID3D12GraphicsCommandList* CmdList, GPUResource& Resource, D3D12_RESOURCE_STATES NewState)
+void aZero::D3D12::GPUResource_Deprecated::TransitionState(ID3D12GraphicsCommandList* CmdList, GPUResource_Deprecated& Resource, D3D12_RESOURCE_STATES NewState)
 {
 	if (NewState != Resource.m_ResourceState)
 	{
@@ -473,7 +522,7 @@ void aZero::D3D12::GPUResource::TransitionState(ID3D12GraphicsCommandList* CmdLi
 	}
 }
 
-void aZero::D3D12::GPUResource::TransitionState(ID3D12GraphicsCommandList* CmdList, ID3D12Resource* Resource, D3D12_RESOURCE_STATES OldState, D3D12_RESOURCE_STATES NewState)
+void aZero::D3D12::GPUResource_Deprecated::TransitionState(ID3D12GraphicsCommandList* CmdList, ID3D12Resource* Resource, D3D12_RESOURCE_STATES OldState, D3D12_RESOURCE_STATES NewState)
 {
 	if (NewState != OldState)
 	{
@@ -482,7 +531,7 @@ void aZero::D3D12::GPUResource::TransitionState(ID3D12GraphicsCommandList* CmdLi
 	}
 }
 
-void aZero::D3D12::GPUResource::TransitionState(ID3D12GraphicsCommandList* CmdList, std::vector<std::pair<D3D12_RESOURCE_STATES, GPUResource*>>& Resources)
+void aZero::D3D12::GPUResource_Deprecated::TransitionState(ID3D12GraphicsCommandList* CmdList, std::vector<std::pair<D3D12_RESOURCE_STATES, GPUResource_Deprecated*>>& Resources)
 {
 	std::vector<D3D12_RESOURCE_BARRIER> Barriers;
 	Barriers.reserve(Resources.size());

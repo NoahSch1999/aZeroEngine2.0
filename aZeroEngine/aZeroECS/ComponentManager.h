@@ -6,20 +6,16 @@ namespace aZero
 {
 	namespace ECS
 	{
-		template <class T, class Tuple>
-		struct Index;
-
-		template <class T, class... Types>
-		struct Index<T, std::tuple<T, Types...>> 
+		template<typename TargetType, typename... TupleTypes>
+		constexpr int GetIndexOfTupleElement(const std::tuple<TupleTypes...>& Tuple)
 		{
-			static const std::size_t value = 0;
-		};
+			bool found = false;
+			int count = 0;
 
-		template <class T, class U, class... Types>
-		struct Index<T, std::tuple<U, Types...>> 
-		{
-			static const std::size_t value = 1 + Index<T, std::tuple<Types...>>::value;
-		};
+			((!found ? (++count, found = std::is_same_v<TargetType, TupleTypes>) : 0), ...);
+
+			return found ? count - 1 : throw;
+		}
 
 		template<class... Args>
 		class ComponentManager
@@ -31,15 +27,35 @@ namespace aZero
 			~ComponentManager() = default;
 
 			template<typename ComponentType>
-			int GetComponentBit()
+			constexpr int GetComponentBit() const
 			{
-				return Index<ComponentType, std::tuple<ComponentType, ComponentArray<Args>...>>::value;
+				return GetIndexOfTupleElement<ComponentArray<ComponentType>>(m_ComponentArrays);
 			}
 
 			template<typename ComponentType>
 			ComponentArray<ComponentType>& GetComponentArray()
 			{
 				return std::get<ComponentArray<ComponentType>>(m_ComponentArrays);
+			}
+
+			template<typename ComponentType>
+			void AddComponent(Entity& Ent, ComponentType&& Component)
+			{
+				GetComponentArray<ComponentType>().AddComponent(Ent, std::forward<ComponentType>(Component));
+				Ent.SetComponentBit(GetComponentBit<ComponentType>(), true);
+			}
+
+			template<typename ComponentType>
+			void RemoveComponent(Entity& Ent)
+			{
+				GetComponentArray<ComponentType>().RemoveComponent(Ent);
+				Ent.SetComponentBit(GetComponentBit<ComponentType>(), false);
+			}
+
+			template<typename ComponentType>
+			bool HasComponent(Entity& Ent)
+			{
+				return Ent.GetComponentMask().test(GetComponentBit<ComponentType>());
 			}
 		};
 	}

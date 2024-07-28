@@ -20,5 +20,5 @@ namespace aZero
 #ifdef _DEBUG
 #define DEBUG_CHECK(statement) if(!statement) DebugBreak();
 #else 
-DEBUG_CHECK(statement)
+#define DEBUG_CHECK(statement)
 #endif

@@ -33,8 +33,8 @@ namespace aZero
 		private:
 			std::string m_Name = "";
 
-			D3D12::GPUResource m_VertexBuffer;
-			D3D12::GPUResource m_IndexBuffer;
+			D3D12::GPUResource_Deprecated m_VertexBuffer;
+			D3D12::GPUResource_Deprecated m_IndexBuffer;
 
 			D3D12_VERTEX_BUFFER_VIEW m_VbView;
 			D3D12_INDEX_BUFFER_VIEW m_IbView;
@@ -54,12 +54,12 @@ namespace aZero
 				BufferDescriptionVB.AccessType = D3D12::RESOURCE_ACCESS_TYPE::GPU_ONLY;
 				BufferDescriptionVB.NumBytes = numVertices * vertexSize;
 				;
-				m_VertexBuffer = std::move(D3D12::GPUResource(device, resourceRecycler, BufferDescriptionVB));
+				m_VertexBuffer = std::move(D3D12::GPUResource_Deprecated(device, resourceRecycler, BufferDescriptionVB));
 				
 				D3D12::BufferResourceDesc BufferDescriptionIB;
 				BufferDescriptionIB.AccessType = D3D12::RESOURCE_ACCESS_TYPE::GPU_ONLY;
 				BufferDescriptionIB.NumBytes = numVertices * sizeof(UINT);
-				m_IndexBuffer = std::move(D3D12::GPUResource(device, resourceRecycler, BufferDescriptionIB));
+				m_IndexBuffer = std::move(D3D12::GPUResource_Deprecated(device, resourceRecycler, BufferDescriptionIB));
 #ifdef _DEBUG
 				std::wstring debugName(name.begin(), name.end());
 				m_VertexBuffer.GetResource()->SetName((debugName + L"_VB").c_str());
@@ -107,10 +107,10 @@ namespace aZero
 				D3D12::BufferResourceDesc UploadBufferDesc;
 				UploadBufferDesc.AccessType = D3D12::RESOURCE_ACCESS_TYPE::CPU_WRITE;
 				UploadBufferDesc.NumBytes = numBytes;
-				D3D12::GPUResource UploadResource= std::move(D3D12::GPUResource(device, ResourceRecycler, UploadBufferDesc));
+				D3D12::GPUResource_Deprecated UploadResource= std::move(D3D12::GPUResource_Deprecated(device, ResourceRecycler, UploadBufferDesc));
 
-				D3D12::GPUResource::CopyBufferToBuffer(CmdList, m_VertexBuffer, 0, UploadResource, 0, numBytesVB, VertexData);
-				D3D12::GPUResource::CopyBufferToBuffer(CmdList, m_IndexBuffer, 0, UploadResource, numBytesVB, numBytesIB, IndexData);
+				D3D12::GPUResource_Deprecated::CopyBufferToBuffer(CmdList, m_VertexBuffer, 0, UploadResource, 0, numBytesVB, VertexData);
+				D3D12::GPUResource_Deprecated::CopyBufferToBuffer(CmdList, m_IndexBuffer, 0, UploadResource, numBytesVB, numBytesIB, IndexData);
 
 				m_VbView.BufferLocation = m_VertexBuffer.GetResource()->GetGPUVirtualAddress();
 				m_VbView.SizeInBytes = numBytesVB;

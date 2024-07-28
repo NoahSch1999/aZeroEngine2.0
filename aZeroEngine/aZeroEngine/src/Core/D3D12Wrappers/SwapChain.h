@@ -9,39 +9,31 @@ namespace aZero
 {
 	namespace D3D12
 	{
+		// Renderer should create and own descriptors when the window is registered
 		class SwapChain
 		{
-		public:
-			struct BackBuffer
-			{
-				Descriptor m_descriptor;
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_resource = nullptr;
-			};
-
 		private:
 			Microsoft::WRL::ComPtr<IDXGISwapChain1> m_swapChain = nullptr; // NOTE - Change to SwapChain3
 			Microsoft::WRL::ComPtr<IDXGIFactory5> m_dxgiFactory = nullptr;
 
-			DXGI_FORMAT m_backBufferFormat = DXGI_FORMAT::DXGI_FORMAT_FORCE_UINT;
-
-			std::vector<BackBuffer> m_backBuffers;
+			std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_backBuffers;
 
 			ResourceRecycler* m_resourceRecycler = nullptr;
-			DescriptorManager* m_descriptorManager = nullptr;
 
 		public:
 			SwapChain(HWND windowHandle,
 				const CommandQueue& graphicsQueue,
-				DescriptorManager& descriptorManager,
 				DXGI_FORMAT backBufferFormat);
 				
 
 			// NOTE - Critical to flush the GPU commands using a CPU side wait before the SwapChain gets destroyed!
 			~SwapChain();
 
-			void ResolveRenderSurface(ID3D12GraphicsCommandList* cmdList, int backBufferIndex, D3D12::GPUResource& renderSource);
-
 			void Present();
+
+			void Resize(const DXM::Vector2& NewDimensions);
+
+			ID3D12Resource* GetBackBufferResource(int index) { return m_backBuffers[index].Get(); }
 
 			SwapChain(const SwapChain&) = delete;
 			SwapChain(SwapChain&&) = delete;

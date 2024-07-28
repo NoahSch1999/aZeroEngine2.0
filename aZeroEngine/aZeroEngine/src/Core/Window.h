@@ -19,17 +19,26 @@ namespace aZero
 		std::wstring m_windowName;
 		HINSTANCE m_appInstance;
 		DXM::Vector2 m_lastWindowedDimensions = { 0, 0 };
+		DXGI_FORMAT m_renderSurfaceFormat;
 
 	public:
 		Window(
-			const D3D12::CommandQueue& graphicsQueue,
-			D3D12::DescriptorManager& descriptorManager,
 			HINSTANCE appInstance,
 			WNDPROC winProcedure,
 			DXGI_FORMAT backBufferFormat,
 			const DXM::Vector2& dimensions, bool fullscreen, const std::string& windowName);
 
 		~Window();
+
+		void Init(HINSTANCE appInstance,
+			WNDPROC winProcedure,
+			DXGI_FORMAT backBufferFormat,
+			const DXM::Vector2& dimensions, bool fullscreen, const std::string& windowName);
+
+		void AllocateSwapChain(const D3D12::CommandQueue& graphicsQueue)
+		{
+			m_swapChain = std::make_unique<D3D12::SwapChain>(m_windowHandle, graphicsQueue, m_renderSurfaceFormat);
+		}
 
 		bool IsOpen();
 		void Resize(const DXM::Vector2& dimensions, const DXM::Vector2& position = { 0, 0 });

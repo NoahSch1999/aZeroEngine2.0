@@ -15,6 +15,7 @@ namespace aZero
 			std::vector<ElementType> m_elements;
 			std::unordered_map<KeyType, int> m_keyToIndex;
 			std::unordered_map<int, KeyType> m_indexToKey;
+
 			int m_numElements = 0;
 			int m_perIncrementSize = 1;
 
