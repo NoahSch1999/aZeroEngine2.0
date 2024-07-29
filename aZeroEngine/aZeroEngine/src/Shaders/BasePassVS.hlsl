@@ -11,25 +11,25 @@ cbuffer PrimitiveData : register(b1)
 
 struct VertexData
 {
-    float3 Position;
-    float2 UV;
-    float3 Normal;
-    float3 Tangent;
+    float3 Position : POSITION;
+    float2 UV : UV;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
 };
 
 struct OutputData
 {
     float4 Position : SV_Position;
-    float3 WorldPosition : WORLDPOSITION;
-    float3 Normal : NORMAL;
     float2 UV : UV;
+    float3 Normal : NORMAL;
+    float3 WorldPosition : WORLDPOSITION;
     float3x3 TBN : TBN;
 };
 
 OutputData main(VertexData Input)
 {
     OutputData Output;
-    
+    Output.Position = float4(0, 0, 0, 1);
     //
     
     

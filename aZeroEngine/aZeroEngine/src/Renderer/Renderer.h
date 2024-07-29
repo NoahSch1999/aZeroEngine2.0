@@ -267,12 +267,12 @@ namespace aZero
 
 				}
 
-				D3D12::ComputePass::PassDescription LightPassDesc;
-				m_ShaderCache.CompileAndStore("LightPassCS");
-				D3D12::Shader* LightPassCS = m_ShaderCache.GetShader("LightPassCS");
-				LightPassCS->AddParameter(D3D12::Shader::RootConstant("Data", 0, 4));
-				D3D12::ComputePass LightPass(LightPassDesc);
-				m_ComputePassCache.emplace("LightPass", std::move(LightPass));
+				//D3D12::ComputePass::PassDescription LightPassDesc;
+				//m_ShaderCache.CompileAndStore("LightPassCS");
+				//D3D12::Shader* LightPassCS = m_ShaderCache.GetShader("LightPassCS");
+				//LightPassCS->AddParameter(D3D12::Shader::RootConstant("Data", 0, 4));
+				//D3D12::ComputePass LightPass(LightPassDesc);
+				//m_ComputePassCache.emplace("LightPass", std::move(LightPass));
 			}
 
 			void RunBasePass()
@@ -285,7 +285,7 @@ namespace aZero
 					m_GBuffers.m_PositionsRTV.GetCPUHandle(),
 					m_GBuffers.m_NormalsRTV.GetCPUHandle() };
 
-				BasePass.SetOutputTargets(CmdList, GBufferHandles, &m_GeometryDepthTextureDSV.GetCPUHandle());
+				//BasePass.SetOutputTargets(CmdList, GBufferHandles, &m_GeometryDepthTextureDSV.GetCPUHandle());
 				
 				{
 					// temp draw to test

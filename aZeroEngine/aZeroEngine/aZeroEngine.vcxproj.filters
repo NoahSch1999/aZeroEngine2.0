@@ -124,30 +124,6 @@
     <ClInclude Include="src\Helpers\NoneCopyable.h">
       <Filter>src\Helpers</Filter>
     </ClInclude>
-    <ClInclude Include="..\aZeroECS\ComponentArray.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\ComponentManager.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\Entity.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\EntityManager.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\PackedLookupArray.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\SparseLookupArray.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\System.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
-    <ClInclude Include="..\aZeroECS\SystemManager.h">
-      <Filter>aZeroECS</Filter>
-    </ClInclude>
     <ClInclude Include="src\Renderer\Renderer.h">
       <Filter>src\Renderer</Filter>
     </ClInclude>
@@ -234,9 +210,6 @@
     <Filter Include="src\Shaders">
       <UniqueIdentifier>{8e56a5ba-a28b-44eb-b3e6-a529f1cce524}</UniqueIdentifier>
     </Filter>
-    <Filter Include="aZeroECS">
-      <UniqueIdentifier>{554d9573-ec75-4fef-bbcf-d4fa0550df5c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Renderer">
       <UniqueIdentifier>{77683fe2-fac8-41f8-ac7d-2810786aca46}</UniqueIdentifier>
     </Filter>
@@ -269,9 +242,6 @@
     <ClCompile Include="src\Core\AssetTypes\MeshAsset.cpp">
       <Filter>src\Core\AssetTypes</Filter>
     </ClCompile>
-    <ClCompile Include="..\aZeroECS\aZeroECS.cpp">
-      <Filter>aZeroECS</Filter>
-    </ClCompile>
     <ClCompile Include="src\D3D12Core.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -279,9 +249,6 @@
     <ClCompile Include="src\Core\D3D12Wrappers\Resources\UploadHeapBuffer.cpp" />
     <ClCompile Include="src\Core\D3D12Wrappers\Resources\ReadbackHeapBuffer.cpp" />
     <ClCompile Include="src\Core\D3D12Wrappers\Resources\GPUTexture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Shaders\VS_DeferredGeometryPass.hlsl">
@@ -305,5 +272,8 @@
     <FxCompile Include="src\Shaders\LightPassCS.hlsl">
       <Filter>src\Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

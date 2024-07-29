@@ -6,9 +6,9 @@ cbuffer PixelShaderConstants : register(b0)
 struct FragmentInput
 {
     float4 Position : SV_Position;
-    float3 WorldPosition : WORLDPOSITION;
-    float3 Normal : NORMAL;
     float2 UV : UV;
+    float3 Normal : NORMAL;
+    float3 WorldPosition : WORLDPOSITION;
     float3x3 TBN : TBN;
 };
 
@@ -22,7 +22,7 @@ struct FragmentOutput
 FragmentOutput main(FragmentInput input)
 {
     FragmentOutput Output;
-    SamplerState Sampler = SamplerDescriptorHeap[SamplerIndex];
+    //SamplerState Sampler = SamplerDescriptorHeap[SamplerIndex];
     //Texture2D<float4> albedoTexture = ResourceDescriptorHeap[albedoDescriptorIndex];
     
     return Output;

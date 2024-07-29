@@ -28,7 +28,7 @@ namespace aZero
 		// Window
 		std::shared_ptr<Window> m_mainWindow = nullptr;
 
-		Rendering::Renderer m_Renderer;
+		std::unique_ptr<Rendering::Renderer> m_Renderer;
 
 		void InitVitalD3D12()
 		{
@@ -44,11 +44,11 @@ namespace aZero
 		{
 			while (!m_ShutDownEngine.load()) // why no exit...
 			{
-				m_Renderer.BeginFrame();
+				m_Renderer->BeginFrame();
 
-				m_Renderer.Render();
+				m_Renderer->Render();
 				
-				m_Renderer.EndFrame();
+				m_Renderer->EndFrame();
 			}
 			std::cout << "EXIT";
 		}
@@ -63,7 +63,9 @@ namespace aZero
 	public:
 		Engine(HINSTANCE appInstance, const DXM::Vector2 windowResolution)
 		{
-			m_Renderer.Init();
+			this->InitVitalD3D12();
+
+			m_Renderer = std::make_unique<Rendering::Renderer>();
 
 			StartRenderThread();
 
@@ -87,7 +89,7 @@ namespace aZero
 
 		void BeginFrame()
 		{
-			while (m_Renderer.GetFrameIndex() < m_GTFrameIndex.load() - 2);
+			while (m_Renderer->GetFrameIndex() < m_GTFrameIndex.load() - 2);
 			if (m_mainWindow->IsOpen())
 			{
 				m_mainWindow->HandleMessages();
@@ -102,7 +104,7 @@ namespace aZero
 		void EndFrame()
 		{
 			m_GTFrameIndex.fetch_add(1);
-			m_Renderer.SignalRenderNextFrame();
+			m_Renderer->SignalRenderNextFrame();
 		}
 	};
 }
